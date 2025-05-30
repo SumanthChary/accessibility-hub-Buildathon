@@ -1,9 +1,12 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, Link as LinkIcon } from 'lucide-react';
+import { Upload, Link as LinkIcon, Mic, Image, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useSpeech } from '@/hooks/use-speech';
+import { useVision } from '@/hooks/use-vision';
+import { useDocument } from '@/hooks/use-document';
+import { API_CONFIG } from '@/lib/api-config';
 
 interface UploadFormProps {
   inputUrl: string;
@@ -14,7 +17,11 @@ interface UploadFormProps {
 
 export const UploadForm = ({ inputUrl, setInputUrl, uploadedFile, setUploadedFile }: UploadFormProps) => {
   const [isDragOver, setIsDragOver] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const { toast } = useToast();
+  const { transcribeAudio, synthesizeSpeech } = useSpeech();
+  const { analyzeImage, answerImageQuestion } = useVision();
+  const { parseDocument, extractInformation } = useDocument();
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -36,24 +43,64 @@ export const UploadForm = ({ inputUrl, setInputUrl, uploadedFile, setUploadedFil
     }
   };
 
-  const handleFileSelect = (file: File) => {
-    // Check file type
-    const allowedTypes = ['application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    if (!allowedTypes.includes(file.type)) {
+  const handleFileSelect = async (file: File) => {
+    // Check file type and size
+    const isAudio = file.type.startsWith('audio/');
+    const isImage = file.type.startsWith('image/');
+    const isDocument = API_CONFIG.supportedDocumentFormats.includes(file.type);
+
+    if (!isAudio && !isImage && !isDocument) {
       toast({
         title: "File type not supported",
-        description: "Please upload a PDF, Word document, or text file.",
+        description: "Please upload an audio file, image, or document (PDF/Word).",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check file size
+    if (isAudio && file.size > API_CONFIG.maxAudioFileSize) {
+      toast({
+        title: "File too large",
+        description: "Audio files must be less than 25MB.",
         variant: "destructive"
       });
       return;
     }
 
     setUploadedFile(file);
-    setInputUrl(''); // Clear URL if file is uploaded
-    toast({
-      title: "File uploaded successfully",
-      description: `${file.name} is ready for accessibility transformation.`
-    });
+    setInputUrl('');
+    setProcessing(true);
+
+    try {
+      if (isAudio) {
+        const transcript = await transcribeAudio(file);
+        toast({
+          title: "Audio transcribed successfully",
+          description: "Your audio has been converted to text."
+        });
+      } else if (isImage) {
+        const analysis = await analyzeImage(file);
+        toast({
+          title: "Image analyzed successfully",
+          description: "Image analysis and description are ready."
+        });
+      } else if (isDocument) {
+        const parsedDoc = await parseDocument(file);
+        toast({
+          title: "Document processed successfully",
+          description: "Document content and structure extracted."
+        });
+      }
+    } catch (err) {
+      toast({
+        title: "Processing failed",
+        description: err instanceof Error ? err.message : "An error occurred",
+        variant: "destructive"
+      });
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,13 +128,13 @@ export const UploadForm = ({ inputUrl, setInputUrl, uploadedFile, setUploadedFil
           Start with Your Content
         </h2>
         <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-          Upload a document or paste a website link to begin making it accessible for everyone.
+          Upload audio, images, or documents to make them accessible for everyone.
         </p>
       </div>
 
       <div className="max-w-2xl mx-auto bg-gray-50 rounded-2xl p-8 shadow-sm border border-gray-200">
         <div className="space-y-6">
-          {/* URL Input */}
+          {/* URL Input Section */}
           <form onSubmit={handleUrlSubmit} className="space-y-3">
             <label htmlFor="url-input" className="block text-sm font-medium text-slate-700">
               Website URL
@@ -129,49 +176,49 @@ export const UploadForm = ({ inputUrl, setInputUrl, uploadedFile, setUploadedFil
             </div>
           </div>
 
-          {/* File Upload */}
+          {/* File Upload Section */}
           <div className="space-y-3">
             <label className="block text-sm font-medium text-slate-700">
-              Upload Document
+              Upload File
             </label>
             <div
-              className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 ${
-                isDragOver 
-                  ? 'border-blue-400 bg-blue-50' 
-                  : uploadedFile 
-                    ? 'border-green-400 bg-green-50'
-                    : 'border-gray-300 bg-white hover:border-gray-400'
+              className={`border-2 border-dashed rounded-lg p-8 text-center ${
+                isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
               }`}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
             >
-              <input
-                type="file"
-                onChange={handleFileInputChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                accept=".pdf,.doc,.docx,.txt"
-                aria-label="Upload document file"
-              />
-              
-              <div className="space-y-3">
-                <Upload className={`mx-auto h-12 w-12 ${
-                  uploadedFile ? 'text-green-600' : 'text-slate-400'
-                }`} />
-                
-                {uploadedFile ? (
-                  <div className="space-y-1">
-                    <p className="text-green-700 font-medium">{uploadedFile.name}</p>
-                    <p className="text-sm text-green-600">Ready for processing</p>
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    <p className="text-slate-700 font-medium">
-                      Drop your file here, or <span className="text-blue-600">browse</span>
-                    </p>
-                    <p className="text-sm text-slate-500">
-                      Supports PDF, Word documents, and text files
-                    </p>
+              <div className="flex flex-col items-center space-y-4">
+                <div className="flex space-x-4">
+                  <Mic className="h-8 w-8 text-slate-400" />
+                  <Image className="h-8 w-8 text-slate-400" />
+                  <FileText className="h-8 w-8 text-slate-400" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-slate-600">
+                    Drag and drop your file here, or
+                  </p>
+                  <label
+                    htmlFor="file-upload"
+                    className="cursor-pointer text-blue-500 hover:text-blue-600"
+                  >
+                    browse from your computer
+                    <Input
+                      id="file-upload"
+                      type="file"
+                      className="hidden"
+                      onChange={handleFileInputChange}
+                      accept="audio/*,image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    />
+                  </label>
+                </div>
+                {processing && (
+                  <div className="text-blue-500">Processing your file...</div>
+                )}
+                {uploadedFile && !processing && (
+                  <div className="text-green-500">
+                    {uploadedFile.name} uploaded successfully
                   </div>
                 )}
               </div>
