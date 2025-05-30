@@ -31,7 +31,6 @@ export const PreviewSection = ({ features, hasContent, file, url }: PreviewSecti
   const [isPlaying, setIsPlaying] = useState(false);
   const { processing, progress, preview, audioUrl, processFile, processUrl } = usePreview();
 
-  // Process file or URL when they change
   useEffect(() => {
     if (file) {
       console.log("Processing file:", file.name);
@@ -76,16 +75,17 @@ export const PreviewSection = ({ features, hasContent, file, url }: PreviewSecti
     }
   };
 
-  // ALWAYS render the preview section
   return (
     <section className="w-full max-w-4xl mx-auto p-6" id="preview-section">
-      <Card className={features.highContrast ? "bg-gray-900 text-white" : "bg-white"}>
-        <div className="p-6 space-y-6">
+      <Card className={features.highContrast ? "bg-gray-900 text-white p-6" : "p-6"}>
+        <div className="space-y-6">
           {/* Loading State */}
           {processing && (
             <div className="space-y-2">
               <Progress value={progress} className="w-full" />
-              <p className="text-sm text-center">Processing your content... {progress}%</p>
+              <p className="text-sm text-center text-muted-foreground">
+                Processing your content... {progress}%
+              </p>
             </div>
           )}
 
@@ -111,7 +111,9 @@ export const PreviewSection = ({ features, hasContent, file, url }: PreviewSecti
                 {!file && !url ? (
                   <div className="flex flex-col items-center justify-center h-64 space-y-4">
                     <Eye className="h-12 w-12 text-gray-400" />
-                    <p className="text-lg text-gray-500">Upload a file or enter a URL to see the preview</p>
+                    <p className="text-lg text-muted-foreground">
+                      Upload a file or enter a URL to see the preview
+                    </p>
                   </div>
                 ) : file ? (
                   <>
@@ -135,17 +137,27 @@ export const PreviewSection = ({ features, hasContent, file, url }: PreviewSecti
                         />
                         {features.signLanguage && (
                           <div className="fixed bottom-4 right-4 w-48 h-64 bg-black rounded-lg border border-white">
-                            <div className="p-2 text-white text-center">Sign Language Interpreter</div>
+                            <div className="p-2 text-white text-center text-sm">
+                              Sign Language Interpreter
+                            </div>
                           </div>
                         )}
                       </div>
                     )}
                     {file.type === 'application/pdf' && (
-                      <iframe src={preview.original} className="w-full h-[600px]" title="PDF preview" />
+                      <iframe
+                        src={preview.original}
+                        className="w-full h-[600px]"
+                        title="PDF preview"
+                      />
                     )}
                   </>
                 ) : (
-                  <iframe src={url || ''} className="w-full h-[600px]" title="Web content preview" />
+                  <iframe
+                    src={url || ''}
+                    className="w-full h-[600px]"
+                    title="Web content preview"
+                  />
                 )}
               </div>
             </TabsContent>
@@ -157,17 +169,24 @@ export const PreviewSection = ({ features, hasContent, file, url }: PreviewSecti
                   <div className="space-y-4">
                     <audio src={audioUrl} controls className="w-full" />
                     <div className="flex justify-center">
-                      <Button variant="outline" size="icon" onClick={togglePlayPause}>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={togglePlayPause}
+                        className={features.highContrast ? "border-white text-white hover:bg-gray-800" : ""}
+                      >
                         {isPlaying ? <PauseIcon className="h-4 w-4" /> : <PlayIcon className="h-4 w-4" />}
                       </Button>
                     </div>
                   </div>
                 )}
-                <div className="prose max-w-none">
+                <div className="prose max-w-none dark:prose-invert">
                   {preview.accessible ? (
                     <pre className="whitespace-pre-wrap">{preview.accessible}</pre>
                   ) : (
-                    <p className="text-gray-500 text-center">Process a file or URL to see its accessible version</p>
+                    <p className="text-center text-muted-foreground">
+                      Process a file or URL to see its accessible version
+                    </p>
                   )}
                 </div>
                 <div className="flex justify-end gap-2">
@@ -175,6 +194,7 @@ export const PreviewSection = ({ features, hasContent, file, url }: PreviewSecti
                     variant="outline"
                     onClick={() => copyToClipboard(preview.accessible || '')}
                     disabled={!preview.accessible}
+                    className={features.highContrast ? "border-white text-white hover:bg-gray-800" : ""}
                   >
                     <Copy className="h-4 w-4 mr-2" />
                     Copy
@@ -183,6 +203,7 @@ export const PreviewSection = ({ features, hasContent, file, url }: PreviewSecti
                     variant="outline"
                     onClick={downloadAccessible}
                     disabled={!preview.accessible}
+                    className={features.highContrast ? "border-white text-white hover:bg-gray-800" : ""}
                   >
                     <Download className="h-4 w-4 mr-2" />
                     Download
@@ -197,13 +218,16 @@ export const PreviewSection = ({ features, hasContent, file, url }: PreviewSecti
                 {preview.analysis ? (
                   <pre className="whitespace-pre-wrap">{preview.analysis}</pre>
                 ) : (
-                  <p className="text-gray-500 text-center">Process a file or URL to see its analysis</p>
+                  <p className="text-center text-muted-foreground">
+                    Process a file or URL to see its analysis
+                  </p>
                 )}
                 <div className="flex justify-end mt-4">
                   <Button
                     variant="outline"
                     onClick={() => copyToClipboard(preview.analysis || '')}
                     disabled={!preview.analysis}
+                    className={features.highContrast ? "border-white text-white hover:bg-gray-800" : ""}
                   >
                     <Copy className="h-4 w-4 mr-2" />
                     Copy Analysis
