@@ -29,6 +29,7 @@ export const usePreview = () => {
   const { toast } = useToast();
 
   const processFile = async (file: File) => {
+    console.log('usePreview processFile:', file);
     if (!file) return;
     
     setProcessing(true);
@@ -42,6 +43,7 @@ export const usePreview = () => {
       const originalUrl = URL.createObjectURL(file);
       setPreview(prev => ({ ...prev, original: originalUrl }));
       setProgress(20);
+      console.log('Set original URL:', originalUrl);
 
       // Process based on file type
       if (file.type.startsWith('audio/')) {

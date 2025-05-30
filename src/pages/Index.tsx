@@ -22,6 +22,9 @@ const Index = () => {
     plainLanguage: false,
   });
 
+  // Debug logging
+  console.log('Index Render:', { inputUrl, uploadedFile, features });
+
   const handleFeatureToggle = (feature: string) => {
     setFeatures(prev => ({
       ...prev,
@@ -32,24 +35,24 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-white text-slate-800">
       <Header />
-      <main>
+      <main className="container mx-auto px-4">
         <HeroSection />
         <Stats />
-        <div className="max-w-6xl mx-auto px-6 lg:px-8">
-          <div className="space-y-24 pb-24">
-            <UploadForm 
-              inputUrl={inputUrl}
-              setInputUrl={setInputUrl}
-              uploadedFile={uploadedFile}
-              setUploadedFile={setUploadedFile}
-            />
-            <FeatureToggles 
-              features={features}
-              onToggle={handleFeatureToggle}
-            />
+        <div id="demo-section" className="space-y-8 py-16">
+          <UploadForm 
+            inputUrl={inputUrl}
+            setInputUrl={setInputUrl}
+            uploadedFile={uploadedFile}
+            setUploadedFile={setUploadedFile}
+          />
+          <FeatureToggles 
+            features={features}
+            onToggle={handleFeatureToggle}
+          />
+          <div className="border-2 border-blue-500 p-4 rounded-lg">
             <PreviewSection 
               features={features}
-              hasContent={true} // Force preview to always show for debugging
+              hasContent={true}
               file={uploadedFile}
               url={inputUrl}
             />

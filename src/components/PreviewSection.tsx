@@ -31,12 +31,16 @@ export const PreviewSection = ({ features, hasContent, file, url }: PreviewSecti
   const [isPlaying, setIsPlaying] = useState(false);
   const { processing, progress, preview, audioUrl, processFile, processUrl } = usePreview();
 
+  // Debug logging
+  console.log('PreviewSection Render:', { hasContent, file, url, processing, progress, preview, audioUrl });
+
   useEffect(() => {
+    console.log('PreviewSection Effect:', { file, url });
     if (file) {
-      console.log("Processing file:", file.name);
+      console.log('Processing file:', file.name, file.type);
       processFile(file);
     } else if (url) {
-      console.log("Processing URL:", url);
+      console.log('Processing URL:', url);
       processUrl(url);
     }
   }, [file, url, processFile, processUrl]);
@@ -76,7 +80,24 @@ export const PreviewSection = ({ features, hasContent, file, url }: PreviewSecti
   };
 
   return (
-    <section className="w-full max-w-4xl mx-auto p-6" id="preview-section">
+    <section className="w-full max-w-4xl mx-auto p-6 border-2 border-red-500" id="preview-section">
+      {/* Debug info */}
+      <div className="bg-yellow-100 p-4 mb-4 rounded">
+        <p>Debug Info:</p>
+        <pre className="text-xs">
+          {JSON.stringify({
+            hasContent,
+            fileName: file?.name,
+            fileType: file?.type,
+            url,
+            processing,
+            progress,
+            hasPreview: !!preview.original
+          }, null, 2)}
+        </pre>
+      </div>
+
+      {/* Existing preview UI */}
       <Card className={features.highContrast ? "bg-gray-900 text-white p-6" : "p-6"}>
         <div className="space-y-6">
           {/* Loading State */}
