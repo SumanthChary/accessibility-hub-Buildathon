@@ -76,20 +76,13 @@ export const usePreview = () => {
   };
 
   const processAudio = async (file: File) => {
-    // Transcribe audio
     setProgress(40);
     const transcript = await transcribeAudio(file);
-    
-    // Generate enhanced version
     setProgress(60);
-    const analysis = await LyzerService.analyzeContent(transcript, 'text');
-    
-    // Create accessible audio version
+    const analysis = await LyzerService.analyzeText(transcript);
     setProgress(80);
-    const accessibleAudio = await synthesizeSpeech(analysis.enhanced_text || transcript);
-    const audioBlob = new Blob([accessibleAudio], { type: 'audio/mp3' });
-    setAudioUrl(URL.createObjectURL(audioBlob));
-
+    // For demo: just set transcript as accessible, no audio synthesis
+    setAudioUrl('');
     setPreview(prev => ({
       ...prev,
       accessible: transcript,
@@ -98,60 +91,39 @@ export const usePreview = () => {
   };
 
   const processImage = async (file: File) => {
-    // Analyze image
     setProgress(40);
-    const imageAnalysis = await analyzeImage(file);
-    
-    // Generate accessible description
+    const imageAnalysis = await LyzerService.analyzeImage(file);
     setProgress(60);
-    const accessibleVersion = await LyzerService.generateAccessibleVersion(file);
-    
-    // Get detailed analysis
-    setProgress(80);
-    const analysis = await LyzerService.analyzeContent(file, 'vision');
-
+    // Use caption as accessible version
     setPreview(prev => ({
       ...prev,
-      accessible: accessibleVersion.description,
-      analysis: JSON.stringify({ ...imageAnalysis, ...analysis }, null, 2)
+      accessible: imageAnalysis.caption || '',
+      analysis: JSON.stringify(imageAnalysis, null, 2)
     }));
   };
 
   const processDocument = async (file: File) => {
-    // Parse document
     setProgress(30);
-    const content = await parseDocument(file);
-    
-    // Generate accessible version
+    const parsed = await parseDocument(file);
     setProgress(60);
-    const accessibleVersion = await LyzerService.generateAccessibleVersion(content);
-    
-    // Analyze document structure
+    const analysis = await LyzerService.analyzeText(parsed.text);
     setProgress(80);
-    const analysis = await LyzerService.analyzeContent(content, 'analysis');
-
     setPreview(prev => ({
       ...prev,
-      accessible: accessibleVersion.content,
+      accessible: parsed.text,
       analysis: JSON.stringify(analysis, null, 2)
     }));
   };
 
   const processUrl = async (url: string) => {
     if (!url) return;
-    
     setProcessing(true);
     setProgress(0);
-    
     try {
       setPreview({ original: '', accessible: '', analysis: '' });
-      
-      // Fetch URL content
       const response = await fetch(url);
       const contentType = response.headers.get('content-type') || '';
-      
       setProgress(30);
-      
       if (contentType.includes('audio')) {
         const blob = await response.blob();
         await processAudio(new File([blob], 'audio', { type: contentType }));
@@ -159,33 +131,19 @@ export const usePreview = () => {
         const blob = await response.blob();
         await processImage(new File([blob], 'image', { type: contentType }));
       } else {
-        // Process as web content
         const text = await response.text();
-        const accessibleVersion = await LyzerService.generateAccessibleVersion(text);
-        const analysis = await LyzerService.analyzeContent(text, 'analysis');
-        
+        const analysis = await LyzerService.analyzeText(text);
         setPreview({
           original: url,
-          accessible: accessibleVersion.content,
+          accessible: text,
           analysis: JSON.stringify(analysis, null, 2)
         });
       }
-
-      toast({
-        title: 'Success',
-        description: 'URL processed successfully'
-      });
+      toast({ title: 'Success', description: 'URL processed successfully' });
     } catch (error) {
       console.error('URL processing error:', error);
-      setPreview(prev => ({
-        ...prev,
-        error: 'Failed to process URL'
-      }));
-      toast({
-        title: 'Error',
-        description: 'Failed to process URL',
-        variant: 'destructive'
-      });
+      setPreview(prev => ({ ...prev, error: 'Failed to process URL' }));
+      toast({ title: 'Error', description: 'Failed to process URL', variant: 'destructive' });
     } finally {
       setProcessing(false);
       setProgress(100);
