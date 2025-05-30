@@ -1,7 +1,16 @@
-
+import { useState, useEffect } from 'react';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, Link as LinkIcon, Copy, Eye } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { usePreview } from '@/hooks/use-preview';
+import { 
+  Play as PlayIcon, 
+  Pause as PauseIcon, 
+  Download as DownloadIcon,
+  Copy as CopyIcon
+} from 'lucide-react';
 
 interface PreviewSectionProps {
   features: {
@@ -12,49 +21,57 @@ interface PreviewSectionProps {
     plainLanguage: boolean;
   };
   hasContent: boolean;
+  file: File | null;
+  url: string | null;
 }
 
-export const PreviewSection = ({ features, hasContent }: PreviewSectionProps) => {
-  const { toast } = useToast();
-  
-  const activeFeatures = Object.entries(features).filter(([_, active]) => active);
-  
-  const handleDownload = () => {
-    toast({
-      title: "Download started",
-      description: "Your accessible content is being prepared for download."
-    });
-  };
+export const PreviewSection = ({ features, hasContent, file, url }: PreviewSectionProps) => {
+  const [activeTab, setActiveTab] = useState('original');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const { processing, progress, preview, audioUrl, processFile, processUrl } = usePreview();
 
-  const handleCopyLink = () => {
-    const link = "https://accessible-content.example.com/shared/abc123";
-    navigator.clipboard.writeText(link);
-    toast({
-      title: "Link copied",
-      description: "Shareable accessible link copied to clipboard."
-    });
-  };
-
-  const getPreviewText = () => {
-    const baseText = "Welcome to our website. We believe in creating content that everyone can access and enjoy.";
+  useEffect(() => {
+    if (!hasContent) return;
     
-    if (features.plainLanguage) {
-      return "Welcome! We make content that everyone can use and enjoy.";
+    if (file) {
+      processFile(file);
+    } else if (url) {
+      processUrl(url);
     }
-    
-    return baseText;
+  }, [file, url, processFile, processUrl, hasContent]);
+
+  const togglePlayPause = () => {
+    const audio = document.querySelector('audio');
+    if (audio) {
+      if (isPlaying) {
+        audio.pause();
+      } else {
+        audio.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
   };
 
-  const getPreviewStyle = () => {
-    let className = "p-6 rounded-lg border text-left transition-all duration-300 ";
+  const downloadAccessible = () => {
+    if (!preview.accessible) return;
     
-    if (features.highContrast) {
-      className += "bg-black text-white border-white ";
-    } else {
-      className += "bg-white border-gray-200 ";
+    const blob = new Blob([preview.accessible], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'accessible-version.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (error) {
+      console.error('Failed to copy text:', error);
     }
-    
-    return className;
   };
 
   if (!hasContent) {
@@ -84,84 +101,159 @@ export const PreviewSection = ({ features, hasContent }: PreviewSectionProps) =>
     );
   }
 
+  const getContentStyle = () => {
+    let className = "p-4 rounded-lg ";
+    
+    if (features.highContrast) {
+      className += "bg-black text-white border border-white ";
+    } else {
+      className += "bg-white border border-gray-200 ";
+    }
+    
+    return className;
+  };
+
   return (
-    <section className="space-y-8">
-      <div className="text-center space-y-4">
-        <h2 className="text-3xl font-semibold text-slate-800">
-          Live Preview
-        </h2>
-        <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-          See how your content looks with the selected accessibility features applied.
-        </p>
-      </div>
-
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Active Features Summary */}
-        {activeFeatures.length > 0 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-medium text-blue-900 mb-2">Active Features:</h3>
-            <div className="flex flex-wrap gap-2">
-              {activeFeatures.map(([feature, _]) => (
-                <span 
-                  key={feature}
-                  className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full font-medium"
-                >
-                  {feature.charAt(0).toUpperCase() + feature.slice(1).replace(/([A-Z])/g, ' $1')}
-                </span>
-              ))}
+    <section className="w-full max-w-4xl mx-auto p-6">
+      <Card className={features.highContrast ? "bg-gray-900 text-white p-6" : "p-6"}>
+        <div className="space-y-4">
+          {processing && (
+            <div className="space-y-2">
+              <Progress value={progress} />
+              <p className="text-sm text-gray-500 text-center">
+                Processing your content... {progress}%
+              </p>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Preview Content */}
-        <div className={getPreviewStyle()}>
-          <div className="space-y-4">
-            <h3 className={`text-xl font-semibold ${features.highContrast ? 'text-white' : 'text-slate-800'}`}>
-              Sample Content Preview
-            </h3>
-            
-            <p className={`leading-relaxed ${
-              features.highContrast ? 'text-gray-100' : 'text-slate-600'
-            } ${features.textToSpeech ? 'border-l-4 border-blue-400 pl-4' : ''}`}>
-              {getPreviewText()}
-            </p>
-            
-            {features.captions && (
-              <div className="bg-black bg-opacity-80 text-white p-3 rounded text-sm">
-                [Captions: "Welcome to our website content..."]
-              </div>
-            )}
-            
-            {features.signLanguage && (
-              <div className="bg-blue-100 border border-blue-300 p-3 rounded text-sm text-blue-800">
-                🤟 Sign language interpretation overlay would appear here
-              </div>
-            )}
-          </div>
-        </div>
+          {preview.error && (
+            <Alert variant="destructive">
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{preview.error}</AlertDescription>
+            </Alert>
+          )}
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button 
-            onClick={handleDownload}
-            size="lg"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg"
-          >
-            <Download className="mr-2 h-5 w-5" />
-            Download Accessible Version
-          </Button>
-          
-          <Button 
-            onClick={handleCopyLink}
-            variant="outline"
-            size="lg"
-            className="border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-3 rounded-lg"
-          >
-            <Copy className="mr-2 h-5 w-5" />
-            Copy Shareable Link
-          </Button>
+          <Tabs defaultValue="original" value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="original">Original</TabsTrigger>
+              <TabsTrigger value="accessible">Accessible Version</TabsTrigger>
+              <TabsTrigger value="analysis">Analysis</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="original" className="min-h-[300px]">
+              <div className={getContentStyle()}>
+                {file && file.type.startsWith('audio/') && (
+                  <div className="space-y-4">
+                    <audio src={preview.original} controls className="w-full" />
+                    <div className="flex items-center justify-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={togglePlayPause}
+                        className={features.highContrast ? "border-white text-white hover:bg-gray-800" : ""}
+                      >
+                        {isPlaying ? <PauseIcon className="h-4 w-4" /> : <PlayIcon className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    {features.captions && preview.accessible && (
+                      <div className="bg-black bg-opacity-80 text-white p-3 rounded text-sm mt-2">
+                        {preview.accessible}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {file && file.type.startsWith('image/') && (
+                  <div className="space-y-4">
+                    <img
+                      src={preview.original}
+                      alt={preview.accessible || "Original upload"}
+                      className="max-w-full h-auto mx-auto"
+                      style={features.highContrast ? { filter: 'contrast(150%) brightness(120%)' } : undefined}
+                    />
+                    {features.signLanguage && (
+                      <div className="fixed bottom-4 right-4 w-48 h-64 bg-black rounded-lg border border-white">
+                        <div className="p-2 text-white text-center text-sm">Sign Language Interpreter</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {file && file.type === 'application/pdf' && (
+                  <iframe
+                    src={preview.original}
+                    className="w-full h-[500px]"
+                    title="PDF preview"
+                  />
+                )}
+                {url && (
+                  <iframe
+                    src={url}
+                    className="w-full h-[500px]"
+                    title="Web content preview"
+                  />
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="accessible" className="min-h-[300px]">
+              <div className={`${getContentStyle()} space-y-4`}>
+                {features.textToSpeech && audioUrl && (
+                  <div className="space-y-4">
+                    <audio src={audioUrl} controls className="w-full" />
+                    <div className="flex items-center justify-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={togglePlayPause}
+                        className={features.highContrast ? "border-white text-white hover:bg-gray-800" : ""}
+                      >
+                        {isPlaying ? <PauseIcon className="h-4 w-4" /> : <PlayIcon className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                <pre className="whitespace-pre-wrap">{preview.accessible}</pre>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => copyToClipboard(preview.accessible || '')}
+                    disabled={!preview.accessible}
+                    className={features.highContrast ? "border-white text-white hover:bg-gray-800" : ""}
+                  >
+                    <CopyIcon className="h-4 w-4 mr-2" />
+                    Copy
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={downloadAccessible}
+                    disabled={!preview.accessible}
+                    className={features.highContrast ? "border-white text-white hover:bg-gray-800" : ""}
+                  >
+                    <DownloadIcon className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="analysis" className="min-h-[300px]">
+              <div className={getContentStyle()}>
+                <pre className="whitespace-pre-wrap">{preview.analysis}</pre>
+                <div className="flex justify-end mt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => copyToClipboard(preview.analysis || '')}
+                    disabled={!preview.analysis}
+                    className={features.highContrast ? "border-white text-white hover:bg-gray-800" : ""}
+                  >
+                    <CopyIcon className="h-4 w-4 mr-2" />
+                    Copy Analysis
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
-      </div>
+      </Card>
     </section>
   );
 };
