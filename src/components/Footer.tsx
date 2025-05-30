@@ -1,9 +1,6 @@
-
 import { Heart, Twitter, Linkedin, Github, Mail, Phone, MapPin } from 'lucide-react';
-
 export const Footer = () => {
-  return (
-    <footer className="bg-slate-900 text-white">
+  return <footer className="bg-slate-900 text-white">
       <div className="max-w-6xl mx-auto px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
@@ -95,7 +92,7 @@ export const Footer = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="flex items-center gap-3">
               <Mail className="h-5 w-5 text-blue-400" />
-              <span className="text-slate-300">hello@accessibilityhub.com</span>
+              <span className="text-slate-300">sumanthchary.business@gmail.com</span>
             </div>
             <div className="flex items-center gap-3">
               <Phone className="h-5 w-5 text-blue-400" />
@@ -128,6 +125,5 @@ export const Footer = () => {
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
