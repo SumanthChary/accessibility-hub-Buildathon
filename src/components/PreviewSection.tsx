@@ -30,18 +30,35 @@ export const PreviewSection = ({ features, hasContent, file, url }: PreviewSecti
   const [activeTab, setActiveTab] = useState('original');
   const [isPlaying, setIsPlaying] = useState(false);
   const { processing, progress, preview, audioUrl, processFile, processUrl } = usePreview();
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Debug logging
   console.log('PreviewSection Render:', { hasContent, file, url, processing, progress, preview, audioUrl });
 
+  // Reset error state when new content is loaded
   useEffect(() => {
-    console.log('PreviewSection Effect:', { file, url });
-    if (file) {
-      console.log('Processing file:', file.name, file.type);
-      processFile(file);
-    } else if (url) {
-      console.log('Processing URL:', url);
-      processUrl(url);
+    setLoadError(null);
+  }, [file, url]);
+
+  // Process content
+  useEffect(() => {
+    const handleContent = async () => {
+      try {
+        if (file) {
+          console.log('Processing file:', file.name, file.type);
+          await processFile(file);
+        } else if (url) {
+          console.log('Processing URL:', url);
+          await processUrl(url);
+        }
+      } catch (error) {
+        console.error('Error in content processing:', error);
+        setLoadError(error instanceof Error ? error.message : 'Failed to process content');
+      }
+    };
+
+    if (file || url) {
+      handleContent();
     }
   }, [file, url, processFile, processUrl]);
 
@@ -100,13 +117,26 @@ export const PreviewSection = ({ features, hasContent, file, url }: PreviewSecti
       {/* Existing preview UI */}
       <Card className={features.highContrast ? "bg-gray-900 text-white p-6" : "p-6"}>
         <div className="space-y-6">
-          {/* Loading State */}
-          {processing && (
-            <div className="space-y-2">
-              <Progress value={progress} className="w-full" />
-              <p className="text-sm text-center text-muted-foreground">
-                Processing your content... {progress}%
-              </p>
+          {/* Loading and Error States */}
+          {(processing || loadError) && (
+            <div className="space-y-4">
+              {processing && (
+                <div className="space-y-2">
+                  <Progress value={progress} className="w-full" />
+                  <p className="text-sm text-center text-muted-foreground">
+                    Processing your content... {progress}%
+                  </p>
+                  <div className="flex justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                  </div>
+                </div>
+              )}
+              {loadError && !processing && (
+                <Alert variant="destructive">
+                  <AlertTitle>Error Loading Content</AlertTitle>
+                  <AlertDescription>{loadError}</AlertDescription>
+                </Alert>
+              )}
             </div>
           )}
 
@@ -115,6 +145,12 @@ export const PreviewSection = ({ features, hasContent, file, url }: PreviewSecti
             <Alert variant="destructive">
               <AlertTitle>Error</AlertTitle>
               <AlertDescription>{preview.error}</AlertDescription>
+            </Alert>
+          )}
+          {loadError && (
+            <Alert variant="destructive">
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{loadError}</AlertDescription>
             </Alert>
           )}
 
@@ -129,7 +165,14 @@ export const PreviewSection = ({ features, hasContent, file, url }: PreviewSecti
             {/* Original Content */}
             <TabsContent value="original" className="min-h-[300px] mt-4">
               <div className="rounded-lg border p-4">
-                {!file && !url ? (
+                {processing ? (
+                  <div className="flex flex-col items-center justify-center h-64 space-y-4">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+                    <p className="text-lg text-muted-foreground">
+                      Processing your content... {progress}%
+                    </p>
+                  </div>
+                ) : !file && !url ? (
                   <div className="flex flex-col items-center justify-center h-64 space-y-4">
                     <Eye className="h-12 w-12 text-gray-400" />
                     <p className="text-lg text-muted-foreground">
@@ -140,26 +183,65 @@ export const PreviewSection = ({ features, hasContent, file, url }: PreviewSecti
                   <>
                     {file.type.startsWith('audio/') && (
                       <div className="space-y-4">
-                        <audio src={preview.original} controls className="w-full" />
-                        {features.captions && preview.accessible && (
-                          <div className="bg-black bg-opacity-80 text-white p-3 rounded">
-                            {preview.accessible}
-                          </div>
-                        )}
+                        <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 shadow-inner">
+                          <audio 
+                            src={preview.original} 
+                            controls 
+                            className="w-full focus:outline-none" 
+                            onPlay={() => setIsPlaying(true)}
+                            onPause={() => setIsPlaying(false)}
+                            onError={(e) => {
+                              console.error('Audio failed to load');
+                              setLoadError('Failed to load audio file');
+                            }}
+                          />
+                          {features.captions && preview.accessible && (
+                            <div className="mt-4 bg-black bg-opacity-80 text-white p-4 rounded-lg font-medium leading-relaxed tracking-wide">
+                              {preview.accessible}
+                            </div>
+                          )}
+                          {audioUrl && (
+                            <div className="mt-4 flex items-center justify-end space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={togglePlayPause}
+                                className={features.highContrast ? "border-white text-white hover:bg-gray-800" : ""}
+                              >
+                                {isPlaying ? <PauseIcon className="h-4 w-4 mr-2" /> : <PlayIcon className="h-4 w-4 mr-2" />}
+                                {isPlaying ? 'Pause' : 'Play'} Synthesized Speech
+                              </Button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                     {file.type.startsWith('image/') && (
                       <div className="relative">
-                        <img
-                          src={preview.original}
-                          alt={preview.accessible || "Original upload"}
-                          className="max-w-full h-auto mx-auto"
-                          style={features.highContrast ? { filter: 'contrast(150%) brightness(120%)' } : undefined}
-                        />
+                        <div className="group relative">
+                          <img
+                            src={preview.original}
+                            alt={preview.accessible || "Original upload"}
+                            className="max-w-full h-auto mx-auto rounded-lg shadow-lg transition-all duration-300"
+                            style={features.highContrast ? { filter: 'contrast(150%) brightness(120%)' } : undefined}
+                            onError={(e) => {
+                              console.error('Image failed to load');
+                              e.currentTarget.src = '/placeholder.svg';
+                            }}
+                          />
+                          {preview.accessible && (
+                            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white p-3 rounded-b-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              {preview.accessible}
+                            </div>
+                          )}
+                        </div>
                         {features.signLanguage && (
-                          <div className="fixed bottom-4 right-4 w-48 h-64 bg-black rounded-lg border border-white">
-                            <div className="p-2 text-white text-center text-sm">
+                          <div className="fixed bottom-4 right-4 w-48 h-64 bg-black rounded-lg border border-white shadow-xl">
+                            <div className="p-2 text-white text-center text-sm font-medium">
                               Sign Language Interpreter
+                            </div>
+                            <div className="flex items-center justify-center h-52 bg-gray-900">
+                              <span className="text-white text-sm">Interpreter feed loading...</span>
                             </div>
                           </div>
                         )}

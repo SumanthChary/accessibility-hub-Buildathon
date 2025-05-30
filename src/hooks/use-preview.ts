@@ -1,16 +1,15 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useSpeech } from './use-speech';
 import { useVision } from './use-vision';
 import { useDocument } from './use-document';
 import { useToast } from './use-toast';
-import { API_CONFIG } from '@/lib/api-config';
-import { LyzerService } from '@/services/lyzer.service';
 
 interface PreviewState {
   original: string;
   accessible: string;
   analysis: string;
   error?: string;
+  contentType?: 'audio' | 'image' | 'pdf' | 'unknown';
 }
 
 export const usePreview = () => {
@@ -19,138 +18,169 @@ export const usePreview = () => {
   const [preview, setPreview] = useState<PreviewState>({
     original: '',
     accessible: '',
-    analysis: ''
+    analysis: '',
+    contentType: 'unknown'
   });
   const [audioUrl, setAudioUrl] = useState<string>('');
-  
+
   const { transcribeAudio, synthesizeSpeech } = useSpeech();
   const { analyzeImage } = useVision();
   const { parseDocument } = useDocument();
   const { toast } = useToast();
 
-  const processFile = async (file: File) => {
-    console.log('usePreview processFile:', file);
+  const processFile = useCallback(async (file: File) => {
+    console.log('Processing file:', file.name, file.type);
     if (!file) return;
-    
+
     setProcessing(true);
     setProgress(0);
     
-    try {
-      // Clear previous state
-      setPreview({ original: '', accessible: '', analysis: '' });
-      
-      // Create preview URL for original content
-      const originalUrl = URL.createObjectURL(file);
-      setPreview(prev => ({ ...prev, original: originalUrl }));
-      setProgress(20);
-      console.log('Set original URL:', originalUrl);
+    // Immediately show the file preview
+    const originalUrl = URL.createObjectURL(file);
+    console.log('Created URL for preview:', originalUrl);
+    
+    setPreview(prev => ({ 
+      ...prev, 
+      original: originalUrl,
+      accessible: 'Processing...',
+      analysis: 'Analyzing...',
+      error: undefined,
+      contentType: file.type.startsWith('audio/') ? 'audio' 
+        : file.type.startsWith('image/') ? 'image'
+        : file.type === 'application/pdf' ? 'pdf'
+        : 'unknown'
+    }));
 
-      // Process based on file type
+    try {
+      setProgress(30);
+
       if (file.type.startsWith('audio/')) {
-        await processAudio(file);
+        console.log('Processing audio file...');
+        const transcript = await transcribeAudio(file);
+        setPreview(prev => ({
+          ...prev,
+          accessible: transcript || 'No transcript available',
+          analysis: 'Audio transcription complete'
+        }));
+        
+        // Generate audio URL for playback if needed
+        if (transcript) {
+          try {
+            await synthesizeSpeech(transcript);
+            // Note: synthesizeSpeech will handle setting the audioUrl
+          } catch (err) {
+            console.error('Failed to synthesize speech:', err);
+          }
+        }
+
       } else if (file.type.startsWith('image/')) {
-        await processImage(file);
+        console.log('Processing image file...');
+        const analysis = await analyzeImage(file);
+        setPreview(prev => ({
+          ...prev,
+          accessible: analysis.caption || 'No caption available',
+          analysis: JSON.stringify({
+            caption: analysis.caption,
+            tags: analysis.tags || [],
+            text: analysis.text
+          }, null, 2)
+        }));
+
       } else if (file.type === 'application/pdf') {
-        await processDocument(file);
+        console.log('Processing PDF file...');
+        const result = await parseDocument(file);
+        let accessibleText = '';
+        let analysisText = '';
+        
+        if (typeof result === 'string') {
+          accessibleText = result;
+          analysisText = 'Basic text extraction complete';
+        } else {
+          accessibleText = result.text || 'No text content available';
+          analysisText = JSON.stringify({
+            pageCount: result.metadata?.pageCount,
+            structure: result.structure,
+            metadata: result.metadata
+          }, null, 2);
+        }
+
+        setPreview(prev => ({
+          ...prev,
+          accessible: accessibleText,
+          analysis: analysisText
+        }));
       } else {
-        throw new Error('Unsupported file type');
+        throw new Error(`Unsupported file type: ${file.type}`);
       }
 
+      setProgress(100);
       toast({
         title: 'Success',
-        description: 'Content processed successfully'
+        description: 'File processed successfully'
       });
+
     } catch (error) {
-      console.error('Processing error:', error);
+      console.error('Error processing file:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process file';
       setPreview(prev => ({
         ...prev,
-        error: error instanceof Error ? error.message : 'Failed to process content'
+        error: errorMessage
       }));
       toast({
         title: 'Error',
-        description: 'Failed to process content',
+        description: errorMessage,
         variant: 'destructive'
       });
     } finally {
       setProcessing(false);
-      setProgress(100);
     }
-  };
+  }, [transcribeAudio, analyzeImage, parseDocument, synthesizeSpeech, toast]);
 
-  const processAudio = async (file: File) => {
-    setProgress(40);
-    const transcript = await transcribeAudio(file);
-    setProgress(60);
-    const analysis = await LyzerService.analyzeText(transcript);
-    setProgress(80);
-    // For demo: just set transcript as accessible, no audio synthesis
-    setAudioUrl('');
-    setPreview(prev => ({
-      ...prev,
-      accessible: transcript,
-      analysis: JSON.stringify(analysis, null, 2)
-    }));
-  };
-
-  const processImage = async (file: File) => {
-    setProgress(40);
-    const imageAnalysis = await LyzerService.analyzeImage(file);
-    setProgress(60);
-    // Use caption as accessible version
-    setPreview(prev => ({
-      ...prev,
-      accessible: imageAnalysis.caption || '',
-      analysis: JSON.stringify(imageAnalysis, null, 2)
-    }));
-  };
-
-  const processDocument = async (file: File) => {
-    setProgress(30);
-    const parsed = await parseDocument(file);
-    setProgress(60);
-    const analysis = await LyzerService.analyzeText(parsed.text);
-    setProgress(80);
-    setPreview(prev => ({
-      ...prev,
-      accessible: parsed.text,
-      analysis: JSON.stringify(analysis, null, 2)
-    }));
-  };
-
-  const processUrl = async (url: string) => {
+  const processUrl = useCallback(async (url: string) => {
+    console.log('Processing URL:', url);
     if (!url) return;
+
     setProcessing(true);
     setProgress(0);
+
     try {
-      setPreview({ original: '', accessible: '', analysis: '' });
-      const response = await fetch(url);
-      const contentType = response.headers.get('content-type') || '';
+      setPreview(prev => ({ 
+        ...prev, 
+        original: url,
+        accessible: 'Processing URL...',
+        analysis: 'Analyzing...',
+        error: undefined,
+        contentType: 'unknown'
+      }));
+
       setProgress(30);
-      if (contentType.includes('audio')) {
-        const blob = await response.blob();
-        await processAudio(new File([blob], 'audio', { type: contentType }));
-      } else if (contentType.includes('image')) {
-        const blob = await response.blob();
-        await processImage(new File([blob], 'image', { type: contentType }));
-      } else {
-        const text = await response.text();
-        const analysis = await LyzerService.analyzeText(text);
-        setPreview({
-          original: url,
-          accessible: text,
-          analysis: JSON.stringify(analysis, null, 2)
-        });
-      }
-      toast({ title: 'Success', description: 'URL processed successfully' });
+
+      const response = await fetch(url, { method: 'HEAD' });
+      const contentType = response.headers.get('content-type') || '';
+      console.log('URL content type:', contentType);
+
+      const contentResponse = await fetch(url);
+      const blob = await contentResponse.blob();
+      const file = new File([blob], 'preview-file', { type: contentType });
+
+      await processFile(file);
+
     } catch (error) {
-      console.error('URL processing error:', error);
-      setPreview(prev => ({ ...prev, error: 'Failed to process URL' }));
-      toast({ title: 'Error', description: 'Failed to process URL', variant: 'destructive' });
+      console.error('Error processing URL:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process URL';
+      setPreview(prev => ({
+        ...prev,
+        error: errorMessage
+      }));
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive'
+      });
     } finally {
       setProcessing(false);
-      setProgress(100);
     }
-  };
+  }, [processFile, toast]);
 
   return {
     processing,
@@ -158,6 +188,6 @@ export const usePreview = () => {
     preview,
     audioUrl,
     processFile,
-    processUrl
+    processUrl,
   };
 };
