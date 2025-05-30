@@ -1,6 +1,6 @@
 
 import { Button } from '@/components/ui/button';
-import { Download, Link as LinkIcon, Copy } from 'lucide-react';
+import { Download, Link as LinkIcon, Copy, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface PreviewSectionProps {

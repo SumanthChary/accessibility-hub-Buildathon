@@ -43,7 +43,7 @@ const Index = () => {
           />
           <PreviewSection 
             features={features}
-            hasContent={inputUrl || uploadedFile}
+            hasContent={Boolean(inputUrl || uploadedFile)}
           />
         </div>
       </main>
