@@ -5,6 +5,12 @@ export const groqClient = new Groq({
   apiKey: import.meta.env.VITE_GROQ_API_KEY,
 });
 
+// Initialize Lyzer client configuration
+export const lyzerConfig = {
+  apiKey: import.meta.env.VITE_LYZER_API_KEY,
+  baseURL: 'https://api.lyzerstudio.com/v1',
+};
+
 export const API_CONFIG = {
   maxAudioFileSize: 25 * 1024 * 1024, // 25MB max for speech-to-text
   supportedAudioFormats: ['audio/wav', 'audio/mp3', 'audio/mpeg'],
@@ -18,6 +24,15 @@ export const API_CONFIG = {
     },
     maxTokens: 4096,
     temperature: 0.7,
+  },
+  lyzer: {
+    models: {
+      text: 'lyzer-text-v1',
+      vision: 'lyzer-vision-v1',
+      analysis: 'lyzer-analysis-v1'
+    },
+    maxTokens: 2048,
+    temperature: 0.5,
   }
 };
 
