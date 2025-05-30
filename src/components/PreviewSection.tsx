@@ -9,7 +9,8 @@ import {
   Play as PlayIcon, 
   Pause as PauseIcon, 
   Download as DownloadIcon,
-  Copy as CopyIcon
+  Copy as CopyIcon,
+  Eye
 } from 'lucide-react';
 
 interface PreviewSectionProps {
