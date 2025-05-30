@@ -75,33 +75,6 @@ export const PreviewSection = ({ features, hasContent, file, url }: PreviewSecti
     }
   };
 
-  if (!hasContent) {
-    return (
-      <section className="space-y-8">
-        <div className="text-center space-y-4">
-          <h2 className="text-3xl font-semibold text-slate-800">
-            Live Preview
-          </h2>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Upload content or enter a URL to see the accessibility features in action.
-          </p>
-        </div>
-        
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-12 text-center">
-            <div className="space-y-3">
-              <div className="w-16 h-16 mx-auto bg-gray-200 rounded-full flex items-center justify-center">
-                <Eye className="h-8 w-8 text-gray-400" />
-              </div>
-              <p className="text-gray-500 font-medium">Preview will appear here</p>
-              <p className="text-sm text-gray-400">Add content above to see it transformed</p>
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   const getContentStyle = () => {
     let className = "p-4 rounded-lg ";
     

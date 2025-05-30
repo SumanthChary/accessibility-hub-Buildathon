@@ -49,7 +49,7 @@ const Index = () => {
             />
             <PreviewSection 
               features={features}
-              hasContent={Boolean(inputUrl || uploadedFile)}
+              hasContent={true} // Force preview to always show for debugging
               file={uploadedFile}
               url={inputUrl}
             />
