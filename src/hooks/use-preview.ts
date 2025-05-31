@@ -123,7 +123,7 @@ export const usePreview = () => {
       }
       throw error;
     }
-  }, [transcribeAudio, synthesizeSpeech]);
+  }, [transcribeAudio, synthesizeSpeech, audioUrl]);
 
   const processFile = useCallback(async (file: File) => {
     try {
@@ -166,11 +166,15 @@ export const usePreview = () => {
 
       // Create preview URL and update state
       const originalUrl = URL.createObjectURL(file);
-      const contentType = file.type.split('/')[0] as PreviewState['contentType'];
+      const contentType = file.type.startsWith('audio/') ? 'audio' :
+                         file.type.startsWith('image/') ? 'image' :
+                         file.type === 'application/pdf' ? 'pdf' : 'unknown';
+                         
       setPreview(prev => ({ 
         ...prev, 
         original: originalUrl,
-        contentType
+        contentType,
+        error: undefined
       }));
       
       let result: ServiceResult;

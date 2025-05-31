@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Header } from '@/components/Header';
 import { HeroSection } from '@/components/HeroSection';
+import { useAuth } from '@/hooks/use-auth';
 import { Stats } from '@/components/Stats';
 import { UploadForm } from '@/components/UploadForm';
 import { FeatureToggles } from '@/components/FeatureToggles';
@@ -15,15 +16,15 @@ const Index = () => {
   const [inputUrl, setInputUrl] = useState('');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [features, setFeatures] = useState({
-    captions: true, // Enable by default for better UX
+    captions: true,
     signLanguage: false,
     highContrast: false,
-    textToSpeech: true, // Enable by default for better UX
-    plainLanguage: true, // Enable by default for better UX
+    textToSpeech: true,
+    plainLanguage: true
   });
 
-  // Debug logging
-  console.log('Index Render:', { inputUrl, uploadedFile, features });
+  const hasContent = Boolean(uploadedFile || inputUrl);
+  const { user } = useAuth();
 
   const handleFeatureToggle = (feature: string) => {
     setFeatures(prev => ({
@@ -32,33 +33,45 @@ const Index = () => {
     }));
   };
 
-  const hasContent = Boolean(uploadedFile || inputUrl);
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 text-slate-800">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       <Header />
-      <main className="container mx-auto px-4 pb-16">
+      <main>
         <HeroSection />
         <Stats />
-        <div id="demo-section" className="space-y-8 py-16">
-          <UploadForm 
-            inputUrl={inputUrl}
-            setInputUrl={setInputUrl}
-            uploadedFile={uploadedFile}
-            setUploadedFile={setUploadedFile}
-          />
-          <FeatureToggles 
-            features={features}
-            onToggle={handleFeatureToggle}
-          />
-          {/* PreviewSection is always rendered but conditionally shows content */}
-          <PreviewSection
-            features={features}
-            hasContent={hasContent}
-            file={uploadedFile}
-            url={inputUrl || null}
-          />
-        </div>
+        <section id="demo-section" className="py-16">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto space-y-8">
+              <div className="text-center">
+                <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-4">
+                  Try it Yourself
+                </h2>
+                <p className="text-lg text-gray-600">
+                  Upload a file or paste a URL to see how we can make your content accessible.
+                </p>
+              </div>
+
+              <UploadForm 
+                inputUrl={inputUrl}
+                setInputUrl={setInputUrl}
+                uploadedFile={uploadedFile}
+                setUploadedFile={setUploadedFile}
+              />
+
+              <FeatureToggles 
+                features={features}
+                onToggle={handleFeatureToggle}
+              />
+
+              <PreviewSection
+                features={features}
+                hasContent={hasContent}
+                file={uploadedFile}
+                url={inputUrl || null}
+              />
+            </div>
+          </div>
+        </section>
         <FeaturesShowcase />
         <Testimonials />
         <FAQ />
