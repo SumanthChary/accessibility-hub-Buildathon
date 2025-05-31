@@ -7,9 +7,9 @@ import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { supabase } from '@/lib/supabase';
 import { AuthUI } from '@/components/AuthUI';
 import { AuthCallback } from '@/pages/AuthCallback';
-import { useAuth } from '@/hooks/use-auth';
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import './App.css';
 
 const queryClient = new QueryClient();
 
