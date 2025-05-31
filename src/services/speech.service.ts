@@ -31,61 +31,42 @@ export class SpeechService {
   }
 
   // Text-to-Speech synthesis using Web Speech API
-  static async synthesizeSpeech(text: string): Promise<Blob> {
+  static synthesizeSpeech(text: string): Promise<Blob> {
     return new Promise((resolve, reject) => {
-      try {
-        // Create audio context and nodes
-        const audioContext = new window.AudioContext();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        // Configure audio nodes
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        // Create an offline context for rendering
-        const offlineCtx = new OfflineAudioContext(1, 44100 * 2, 44100);
-        const source = offlineCtx.createBufferSource();
-        
-        // Generate audio data
-        const audioBuffer = offlineCtx.createBuffer(1, 44100 * 2, 44100);
-        const channelData = audioBuffer.getChannelData(0);
-        
-        // Simple sine wave generation
-        for (let i = 0; i < channelData.length; i++) {
-          channelData[i] = Math.sin(i * 0.1) * 0.5;
-        }
-        
-        source.buffer = audioBuffer;
-        source.connect(offlineCtx.destination);
-        source.start();
-        
-        // Render audio to buffer
-        offlineCtx.startRendering().then((renderedBuffer) => {
-          // Convert audio buffer to wave file
-          const numberOfChannels = renderedBuffer.numberOfChannels;
-          const length = renderedBuffer.length * numberOfChannels * 2;
-          const buffer = new ArrayBuffer(length);
-          const view = new DataView(buffer);
-          let offset = 0;
-          
-          for (let i = 0; i < renderedBuffer.length; i++) {
-            for (let channel = 0; channel < numberOfChannels; channel++) {
-              const sample = renderedBuffer.getChannelData(channel)[i];
-              const value = Math.max(-1, Math.min(1, sample));
-              view.setInt16(offset, value < 0 ? value * 0x8000 : value * 0x7FFF, true);
-              offset += 2;
-            }
-          }
-          
-          const blob = new Blob([buffer], { type: 'audio/wav' });
-          resolve(blob);
-        }).catch(reject);
-        
-      } catch (error) {
-        console.error('Speech synthesis error:', error);
-        reject(new Error('Failed to synthesize speech'));
+      if (!('speechSynthesis' in window)) {
+        reject(new Error('Speech synthesis is not supported in this browser'));
+        return;
       }
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+
+      // Create a MediaRecorder to capture the synthesized speech
+      const audioStream = new MediaStream();
+      const mediaRecorder = new MediaRecorder(audioStream);
+      const audioChunks: BlobPart[] = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunks.push(event.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+        resolve(audioBlob);
+      };
+
+      mediaRecorder.onerror = (error) => {
+        reject(error);
+      };
+
+      utterance.onend = () => {
+        mediaRecorder.stop();
+      };
+
+      mediaRecorder.start();
+      window.speechSynthesis.speak(utterance);
     });
   }
 }

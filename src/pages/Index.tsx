@@ -15,11 +15,11 @@ const Index = () => {
   const [inputUrl, setInputUrl] = useState('');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [features, setFeatures] = useState({
-    captions: false,
+    captions: true, // Enable by default for better UX
     signLanguage: false,
     highContrast: false,
-    textToSpeech: false,
-    plainLanguage: false,
+    textToSpeech: true, // Enable by default for better UX
+    plainLanguage: true, // Enable by default for better UX
   });
 
   // Debug logging
@@ -32,10 +32,12 @@ const Index = () => {
     }));
   };
 
+  const hasContent = Boolean(uploadedFile || inputUrl);
+
   return (
-    <div className="min-h-screen bg-white text-slate-800">
+    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 text-slate-800">
       <Header />
-      <main className="container mx-auto px-4">
+      <main className="container mx-auto px-4 pb-16">
         <HeroSection />
         <Stats />
         <div id="demo-section" className="space-y-8 py-16">
@@ -49,14 +51,13 @@ const Index = () => {
             features={features}
             onToggle={handleFeatureToggle}
           />
-          <div className="border-2 border-blue-500 p-4 rounded-lg">
-            <PreviewSection 
-              features={features}
-              hasContent={true}
-              file={uploadedFile}
-              url={inputUrl}
-            />
-          </div>
+          {/* PreviewSection is always rendered but conditionally shows content */}
+          <PreviewSection
+            features={features}
+            hasContent={hasContent}
+            file={uploadedFile}
+            url={inputUrl || null}
+          />
         </div>
         <FeaturesShowcase />
         <Testimonials />

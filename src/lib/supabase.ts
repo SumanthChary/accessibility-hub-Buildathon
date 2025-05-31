@@ -53,25 +53,18 @@ export const checkQuota = async (userId: string, type: keyof ProcessingQuota): P
       .single();
 
     if (error) throw error;
-    
-    // If no quota record exists, create one with default values
-    if (!quota) {
-      const defaultQuota = {
-        user_id: userId,
-        audio_minutes: 60, // 1 hour free
-        image_count: 100,  // 100 images free
-        pdf_pages: 500     // 500 pages free
-      };
-      
-      await supabase
-        .from('processing_quota')
-        .insert(defaultQuota);
-      
-      return true;
-    }
+    if (!quota) return false;
 
-    // Check if quota is available
-    return quota[type] > 0;
+    // Use SQL function for safe decrement
+    const { error: updateError } = await supabase
+      .rpc('decrement_quota', {
+        user_id: userId,
+        quota_type: type,
+        amount: 1
+      });
+
+    if (updateError) throw updateError;
+    return true;
   } catch (error) {
     console.error('Error checking quota:', error);
     return false;
@@ -85,10 +78,11 @@ export const updateQuota = async (
   amount: number
 ): Promise<void> => {
   try {
-    const { error } = await supabase
-      .from('processing_quota')
-      .update({ [type]: supabase.raw(`${type} - ${amount}`) })
-      .eq('user_id', userId);
+    const { error } = await supabase.rpc('decrement_quota', {
+      user_id: userId,
+      quota_type: type,
+      amount: amount
+    });
 
     if (error) throw error;
   } catch (error) {

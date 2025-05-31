@@ -87,13 +87,21 @@ export const usePreview = () => {
       
       setProgress(90);
       const processedTranscript = transcript.trim();
-      const audioBlob = await synthesizeSpeech(processedTranscript);
-      if (!audioBlob) throw new Error('Failed to synthesize speech');
+      let audioUrl: string | undefined;
       
-      const audioUrl = URL.createObjectURL(audioBlob);
+      try {
+        const audioBlob = await synthesizeSpeech(processedTranscript);
+        audioUrl = URL.createObjectURL(audioBlob);
+        setAudioUrl(audioUrl);
+      } catch (error) {
+        console.error('Speech synthesis failed:', error);
+        // Don't throw, we still want to show the transcript
+      }
+      
+      setProgress(100);
       const duration = await getAudioDuration(file);
       
-      return {
+      const result: ServiceResult = {
         accessible: processedTranscript,
         analysis: JSON.stringify({
           duration: `${duration.toFixed(2)} seconds`,
@@ -101,11 +109,19 @@ export const usePreview = () => {
           size: formatFileSize(file.size),
           processingMethod: 'Chunk-based streaming transcription',
           wordCount: processedTranscript.split(/\s+/).length
-        }, null, 2),
-        audioUrl
+        })
       };
+
+      if (audioUrl) {
+        result.audioUrl = audioUrl;
+      }
+
+      return result;
     } catch (error) {
-      throw new Error(`Audio processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+      throw error;
     }
   }, [transcribeAudio, synthesizeSpeech]);
 
@@ -228,7 +244,7 @@ export const usePreview = () => {
         URL.revokeObjectURL(audioUrl);
       }
     }
-  }, [processAudioFile, analyzeImage, parseDocument, toast, getFromCache, saveToCache]);
+  }, [processAudioFile, analyzeImage, parseDocument, toast, getFromCache, saveToCache, audioUrl, preview.original]);
 
   const processUrl = useCallback(async (url: string) => {
     if (!url) return;

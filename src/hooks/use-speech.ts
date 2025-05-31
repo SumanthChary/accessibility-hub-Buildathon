@@ -21,16 +21,12 @@ export const useSpeech = () => {
     }
   };
 
-  const synthesizeSpeech = async (text: string, voice: SupportedVoices = 'alloy'): Promise<void> => {
+  const synthesizeSpeech = async (text: string, voice: SupportedVoices = 'alloy'): Promise<Blob> => {
     setIsSynthesizing(true);
     setError(null);
     try {
-      const audioData = await SpeechService.synthesize(text, voice);
-      const blob = new Blob([audioData], { type: 'audio/mp3' });
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      await audio.play();
-      audio.onended = () => URL.revokeObjectURL(url);
+      const audioBlob = await SpeechService.synthesizeSpeech(text);
+      return audioBlob;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to synthesize speech');
       throw err;

@@ -122,110 +122,98 @@ export const UploadForm = ({ inputUrl, setInputUrl, uploadedFile, setUploadedFil
   };
 
   return (
-    <section id="upload-section" className="space-y-8">
-      <div className="text-center space-y-4">
-        <h2 className="text-3xl font-semibold text-slate-800">
-          Start with Your Content
-        </h2>
-        <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-          Upload audio, images, or documents to make them accessible for everyone.
-        </p>
-      </div>
-
-      <div className="max-w-2xl mx-auto bg-gray-50 rounded-2xl p-8 shadow-sm border border-gray-200">
-        <div className="space-y-6">
-          {/* URL Input Section */}
-          <form onSubmit={handleUrlSubmit} className="space-y-3">
-            <label htmlFor="url-input" className="block text-sm font-medium text-slate-700">
-              Website URL
-            </label>
-            <div className="flex gap-3">
-              <div className="relative flex-1">
-                <LinkIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
-                <Input
-                  id="url-input"
-                  type="url"
-                  placeholder="Paste a link to any website..."
-                  value={inputUrl}
-                  onChange={(e) => setInputUrl(e.target.value)}
-                  className="pl-10 h-12 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  aria-describedby="url-help"
-                />
-              </div>
-              <Button 
-                type="submit" 
-                disabled={!inputUrl.trim()}
-                className="h-12 px-6 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Process website URL"
-              >
-                Process
-              </Button>
-            </div>
-            <p id="url-help" className="text-sm text-slate-500">
-              We support most websites and will extract the main content.
+    <div className="w-full max-w-4xl mx-auto space-y-4">
+      <div 
+        className={`
+          relative p-8 border-2 border-dashed rounded-lg transition-all
+          ${isDragOver 
+            ? 'border-blue-500 bg-blue-50' 
+            : 'border-gray-300 bg-white hover:border-gray-400'
+          }
+        `}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        <div className="text-center space-y-4">
+          <div className="flex justify-center space-x-4">
+            <Mic className="w-8 h-8 text-blue-500" />
+            <Image className="w-8 h-8 text-green-500" />
+            <FileText className="w-8 h-8 text-purple-500" />
+          </div>
+          
+          <div>
+            <h3 className="text-lg font-semibold">Drag and drop your file here</h3>
+            <p className="text-sm text-gray-500">
+              Support for audio, images, and PDFs up to 50MB
             </p>
-          </form>
-
-          {/* Divider */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-gray-50 text-slate-500 font-medium">OR</span>
-            </div>
           </div>
 
-          {/* File Upload Section */}
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-slate-700">
-              Upload File
+          <div className="flex justify-center">
+            <label htmlFor="file-upload" className="cursor-pointer">
+              <Button 
+                variant="outline" 
+                className="relative"
+                disabled={processing}
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Choose File
+                <input
+                  id="file-upload"
+                  type="file"
+                  className="sr-only"
+                  accept={API_CONFIG.supportedFileTypes.join(',')}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFileSelect(file);
+                  }}
+                />
+              </Button>
             </label>
-            <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center ${
-                isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-              }`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              <div className="flex flex-col items-center space-y-4">
-                <div className="flex space-x-4">
-                  <Mic className="h-8 w-8 text-slate-400" />
-                  <Image className="h-8 w-8 text-slate-400" />
-                  <FileText className="h-8 w-8 text-slate-400" />
-                </div>
-                <div className="space-y-2">
-                  <p className="text-slate-600">
-                    Drag and drop your file here, or
-                  </p>
-                  <label
-                    htmlFor="file-upload"
-                    className="cursor-pointer text-blue-500 hover:text-blue-600"
-                  >
-                    browse from your computer
-                    <Input
-                      id="file-upload"
-                      type="file"
-                      className="hidden"
-                      onChange={handleFileInputChange}
-                      accept="audio/*,image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                    />
-                  </label>
-                </div>
-                {processing && (
-                  <div className="text-blue-500">Processing your file...</div>
-                )}
-                {uploadedFile && !processing && (
-                  <div className="text-green-500">
-                    {uploadedFile.name} uploaded successfully
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
         </div>
       </div>
-    </section>
+
+      <div className="flex items-center space-x-4">
+        <div className="relative flex-1">
+          <LinkIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Input
+            type="url"
+            placeholder="Or paste a URL to process..."
+            value={inputUrl}
+            onChange={(e) => setInputUrl(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Button
+          onClick={() => {
+            if (inputUrl) handleUrlSubmit();
+          }}
+          disabled={!inputUrl || processing}
+        >
+          Process URL
+        </Button>
+      </div>
+
+      {uploadedFile && (
+        <div className="p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              {uploadedFile.type.startsWith('audio/') && <Mic className="w-4 h-4 text-blue-500" />}
+              {uploadedFile.type.startsWith('image/') && <Image className="w-4 h-4 text-green-500" />}
+              {uploadedFile.type === 'application/pdf' && <FileText className="w-4 h-4 text-purple-500" />}
+              <span className="text-sm font-medium">{uploadedFile.name}</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setUploadedFile(null)}
+            >
+              Remove
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
