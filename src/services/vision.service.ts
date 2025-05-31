@@ -12,6 +12,34 @@ export interface ImageAnalysisResult {
 }
 
 export class VisionService {
+  static async answerQuestion(imageFile: File, question: string): Promise<string> {
+    try {
+      const image = await imageFile.arrayBuffer();
+      const base64Image = Buffer.from(image).toString('base64');
+
+      const response = await groqClient.chat.completions.create({
+        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert at analyzing images and answering questions about them.',
+          },
+          {
+            role: 'user',
+            content: `Based on this image: ${base64Image}\n\nPlease answer this question: ${question}`,
+          },
+        ],
+        temperature: 0.3,
+        max_tokens: 512,
+      });
+
+      return response.choices[0]?.message?.content || 'Unable to answer the question.';
+    } catch (error) {
+      console.error('Error answering question:', error);
+      throw error;
+    }
+  }
+
   // Image Analysis using Vision models
   static async analyzeImage(imageFile: File): Promise<ImageAnalysisResult> {
     try {
