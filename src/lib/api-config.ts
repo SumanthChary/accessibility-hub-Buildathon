@@ -1,8 +1,8 @@
 import { Groq } from 'groq-sdk';
 
-// Initialize Groq client
+// Initialize Groq client with direct API key
 export const groqClient = new Groq({
-  apiKey: import.meta.env.VITE_GROQ_API_KEY,
+  apiKey: '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',
 });
 
 // Initialize Lyzer client configuration

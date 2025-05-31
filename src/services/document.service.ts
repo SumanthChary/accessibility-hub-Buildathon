@@ -4,85 +4,127 @@ import * as pdfjsLib from 'pdfjs-dist';
 // Initialize PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
+interface TextItem {
+  str: string;
+  dir: string;
+  width: number;
+  height: number;
+  transform: number[];
+  fontName: string;
+}
+
+interface PageStructure {
+  pageNumber: number;
+  textLength: number;
+}
+
+interface PDFMetadata {
+  info?: {
+    Title?: string;
+    Author?: string;
+    Subject?: string;
+    Keywords?: string;
+    Creator?: string;
+    Producer?: string;
+    CreationDate?: string;
+    ModDate?: string;
+  };
+  metadata?: unknown;
+}
+
+interface DocumentAnalysis {
+  text: string;
+  structure: PageStructure[];
+  metadata: PDFMetadata;
+  summary?: string;
+  simplifiedText?: string;
+}
+
 export class DocumentService {
-  // Parse PDF documents
-  static async parsePDF(file: File): Promise<{
-    text: string;
-    structure: any;
-    metadata: any;
-  }> {
+  static async parsePDF(file: File): Promise<DocumentAnalysis> {
     try {
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       
       const numPages = pdf.numPages;
       let fullText = '';
-      const structure = [];
+      const structure: PageStructure[] = [];
 
-      // Extract text from each page
       for (let i = 1; i <= numPages; i++) {
         const page = await pdf.getPage(i);
         const content = await page.getTextContent();
-        const pageText = content.items.map((item: any) => item.str).join(' ');
-        fullText += pageText + '\n';
-
-        // Get page structure
+        const pageText = content.items
+          .filter((item): item is TextItem => 'str' in item)
+          .map(item => item.str)
+          .join(' ');
+        
+        fullText += pageText + '\n\n';
         structure.push({
           pageNumber: i,
-          size: {
-            width: page.view[2],
-            height: page.view[3],
-          },
+          textLength: pageText.length,
         });
       }
 
-      // Get document metadata
-      const metadata = await pdf.getMetadata();
+      const metadata = await pdf.getMetadata() as PDFMetadata;
 
-      // Use Groq to analyze the document content
-      const analysisResponse = await groqClient.chat.completions.create({
+      // Use Groq for text analysis
+      const response = await groqClient.chat.completions.create({
+        model: "meta-llama/llama-4-scout-17b-16e-instruct",
         messages: [
           {
-            role: 'user',
-            content: `Analyze this document content and provide a structured summary: ${fullText}`,
+            role: 'system',
+            content: 'Analyze and simplify the following document text. Provide: 1) A concise summary (max 3 sentences) 2) A simplified version in plain language'
           },
+          {
+            role: 'user',
+            content: `Text to analyze: ${fullText.substring(0, 4000)}...`
+          }
         ],
-        model: 'mixtral-8x7b-32768',
+        temperature: 0.3,
+        max_tokens: 2048
       });
+
+      const analysisContent = response.choices[0]?.message?.content || '';
+      const [summary = '', simplifiedText = ''] = analysisContent.split('\n\n').map(text => 
+        text.replace(/^(Summary:|Simplified Version:)/i, '').trim()
+      );
 
       return {
         text: fullText,
-        structure: {
-          pages: structure,
-          analysis: analysisResponse.choices[0]?.message?.content,
-        },
-        metadata: metadata.info,
+        structure,
+        metadata,
+        summary,
+        simplifiedText
       };
+
     } catch (error) {
-      console.error('Document parsing error:', error);
-      throw new Error('Failed to parse document');
+      console.error('PDF parsing error:', error);
+      throw new Error('Failed to parse PDF document');
     }
   }
 
-  // Extract specific information from document
-  static async extractInformation(file: File, query: string): Promise<string> {
+  static async simplifyText(text: string): Promise<string> {
     try {
-      const { text } = await this.parsePDF(file);
-
       const response = await groqClient.chat.completions.create({
+        model: "meta-llama/llama-4-scout-17b-16e-instruct",
         messages: [
           {
-            role: 'user',
-            content: `Based on this document content: "${text}", ${query}`,
+            role: 'system',
+            content: 'Convert the following text into simple, plain language that is easy to understand.'
           },
+          {
+            role: 'user',
+            content: `Text to simplify: ${text}`
+          }
         ],
-        model: 'mixtral-8x7b-32768',
+        temperature: 0.3,
+        max_tokens: 1024
       });
 
-      return response.choices[0]?.message?.content || '';
+      return response.choices[0]?.message?.content || text;
     } catch (error) {
-      console.error('Information extraction error:', error);
-      throw new Error('Failed to extract information from document');
+      console.error('Text simplification error:', error);
+      throw new Error('Failed to simplify text');
     }
   }
 }

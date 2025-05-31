@@ -5,12 +5,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { usePreview } from '@/hooks/use-preview';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { supabase, checkQuota, updateQuota } from '@/lib/supabase';
 import { 
   Play as PlayIcon, 
   Pause as PauseIcon, 
   Download, 
   Copy,
-  Eye
+  Eye,
+  AlertTriangle
 } from 'lucide-react';
 
 interface PreviewSectionProps {
@@ -31,36 +35,92 @@ export const PreviewSection = ({ features, hasContent, file, url }: PreviewSecti
   const [isPlaying, setIsPlaying] = useState(false);
   const { processing, progress, preview, audioUrl, processFile, processUrl } = usePreview();
   const [loadError, setLoadError] = useState<string | null>(null);
+  const { user, quota } = useAuth();
+  const { toast } = useToast();
 
-  // Debug logging
-  console.log('PreviewSection Render:', { hasContent, file, url, processing, progress, preview, audioUrl });
-
-  // Reset error state when new content is loaded
-  useEffect(() => {
-    setLoadError(null);
-  }, [file, url]);
-
-  // Process content
+  // Process content with quota check
   useEffect(() => {
     const handleContent = async () => {
+      if (!user) {
+        setLoadError('Please sign in to process content');
+        return;
+      }
+
       try {
         if (file) {
+          // Check quota based on file type
+          let quotaType: 'audio_minutes' | 'image_count' | 'pdf_pages';
+          let quotaAmount = 1;
+
+          if (file.type.startsWith('audio/')) {
+            quotaType = 'audio_minutes';
+            const buffer = await file.arrayBuffer();
+            const audioContext = new AudioContext();
+            const audioBuffer = await audioContext.decodeAudioData(buffer);
+            quotaAmount = Math.ceil(audioBuffer.duration / 60);
+          } else if (file.type.startsWith('image/')) {
+            quotaType = 'image_count';
+          } else if (file.type === 'application/pdf') {
+            quotaType = 'pdf_pages';
+          } else {
+            throw new Error('Unsupported file type');
+          }
+
+          const hasQuota = await checkQuota(user.id, quotaType);
+          if (!hasQuota) {
+            throw new Error(`Processing quota exceeded for ${quotaType.replace('_', ' ')}. Please upgrade your plan.`);
+          }
+
           console.log('Processing file:', file.name, file.type);
           await processFile(file);
+
+          // Update quota and log history
+          await Promise.all([
+            updateQuota(user.id, quotaType, quotaAmount),
+            supabase.from('processing_history').insert({
+              user_id: user.id,
+              type: quotaType.split('_')[0] as 'audio' | 'image' | 'pdf',
+              file_name: file.name,
+              file_size: file.size,
+              processing_time: Date.now()
+            })
+          ]);
+
+          toast({
+            title: 'Success',
+            description: 'File processed successfully',
+          });
+
         } else if (url) {
           console.log('Processing URL:', url);
           await processUrl(url);
+          
+          toast({
+            title: 'Success',
+            description: 'URL processed successfully',
+          });
         }
       } catch (error) {
         console.error('Error in content processing:', error);
-        setLoadError(error instanceof Error ? error.message : 'Failed to process content');
+        const errorMessage = error instanceof Error ? error.message : 'Failed to process content';
+        setLoadError(errorMessage);
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive'
+        });
       }
     };
 
     if (file || url) {
       handleContent();
     }
-  }, [file, url, processFile, processUrl]);
+  }, [file, url, processFile, processUrl, user, toast]);
+
+  // Reset error state when new content is loaded
+  useEffect(() => {
+    setLoadError(null);
+  }, [file, url]);
 
   const togglePlayPause = () => {
     const audio = document.querySelector('audio');
@@ -97,7 +157,25 @@ export const PreviewSection = ({ features, hasContent, file, url }: PreviewSecti
   };
 
   return (
-    <section className="w-full max-w-4xl mx-auto p-6 border-2 border-red-500" id="preview-section">
+    <section className="w-full max-w-4xl mx-auto p-6" id="preview-section">
+      {!user && (
+        <Alert className="mb-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Authentication Required</AlertTitle>
+          <AlertDescription>
+            Please sign in to process and analyze content.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {user && quota && (
+        <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <p className="text-sm text-muted-foreground">
+            Remaining quota: {quota.audio_minutes} min audio | {quota.image_count} images | {quota.pdf_pages} PDF pages
+          </p>
+        </div>
+      )}
+
       {/* Debug info */}
       <div className="bg-yellow-100 p-4 mb-4 rounded">
         <p>Debug Info:</p>
