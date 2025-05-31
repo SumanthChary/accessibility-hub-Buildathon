@@ -1,9 +1,8 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useSpeech } from './use-speech';
 import { useVision } from './use-vision';
 import { useDocument } from './use-document';
 import { useToast } from './use-toast';
-import { useAuth } from './use-auth';
 import { getAudioDuration, getImageDimensions, formatFileSize, createChunkedFile } from '@/utils/file-utils';
 import type { CacheEntry, PreviewState, ServiceResult } from '@/types/preview';
 
@@ -242,10 +241,11 @@ export const usePreview = () => {
       clearTimeout(processingTimeoutRef.current);
       setProcessing(false);
       
+      // Clean up URLs when processing is done or aborted
       // Clean up URLs when processing is done
       if (abortControllerRef.current?.signal.aborted) {
         URL.revokeObjectURL(preview.original);
-        URL.revokeObjectURL(audioUrl);
+        if (audioUrl) URL.revokeObjectURL(audioUrl);
       }
     }
   }, [processAudioFile, analyzeImage, parseDocument, toast, getFromCache, saveToCache, audioUrl, preview.original]);
@@ -334,6 +334,17 @@ export const usePreview = () => {
       setProcessing(false);
     }
   }, [processFile, toast]);
+
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      // Cleanup on unmount
+      if (preview.original) URL.revokeObjectURL(preview.original);
+      if (audioUrl) URL.revokeObjectURL(audioUrl);
+      abortControllerRef.current?.abort();
+      clearTimeout(processingTimeoutRef.current);
+    };
+  }, [preview.original, audioUrl]);
 
   return {
     processing,

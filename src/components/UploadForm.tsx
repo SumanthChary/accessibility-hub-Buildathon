@@ -13,9 +13,16 @@ interface UploadFormProps {
   setInputUrl: (url: string) => void;
   uploadedFile: File | null;
   setUploadedFile: (file: File | null) => void;
+  onUrlSubmit: (url: string) => void;
 }
 
-export const UploadForm = ({ inputUrl, setInputUrl, uploadedFile, setUploadedFile }: UploadFormProps) => {
+export const UploadForm = ({ 
+  inputUrl, 
+  setInputUrl, 
+  uploadedFile, 
+  setUploadedFile,
+  onUrlSubmit 
+}: UploadFormProps) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [processing, setProcessing] = useState(false);
   const { toast } = useToast();
@@ -47,13 +54,19 @@ export const UploadForm = ({ inputUrl, setInputUrl, uploadedFile, setUploadedFil
     // Check file type and size
     const isAudio = file.type.startsWith('audio/');
     const isImage = file.type.startsWith('image/');
-    const isDocument = API_CONFIG.supportedDocumentFormats.includes(file.type);
-
-    if (!isAudio && !isImage && !isDocument) {
+    const isPDF = file.type === 'application/pdf';
+    
+    const supportedTypes = [
+      ...API_CONFIG.supportedAudioFormats,
+      ...API_CONFIG.supportedImageFormats,
+      ...API_CONFIG.supportedDocumentFormats
+    ];
+    
+    if (!supportedTypes.includes(file.type)) {
       toast({
-        title: "File type not supported",
-        description: "Please upload an audio file, image, or document (PDF/Word).",
-        variant: "destructive"
+        title: 'Unsupported File Type',
+        description: `Please upload one of: ${supportedTypes.join(', ')}`,
+        variant: 'destructive'
       });
       return;
     }
@@ -85,7 +98,7 @@ export const UploadForm = ({ inputUrl, setInputUrl, uploadedFile, setUploadedFil
           title: "Image analyzed successfully",
           description: "Image analysis and description are ready."
         });
-      } else if (isDocument) {
+      } else if (isPDF) {
         const parsedDoc = await parseDocument(file);
         toast({
           title: "Document processed successfully",
@@ -114,6 +127,7 @@ export const UploadForm = ({ inputUrl, setInputUrl, uploadedFile, setUploadedFil
     e.preventDefault();
     if (inputUrl.trim()) {
       setUploadedFile(null); // Clear file if URL is entered
+      onUrlSubmit(inputUrl.trim());
       toast({
         title: "URL added successfully",
         description: "Ready to apply accessibility features."
@@ -162,7 +176,7 @@ export const UploadForm = ({ inputUrl, setInputUrl, uploadedFile, setUploadedFil
                   id="file-upload"
                   type="file"
                   className="sr-only"
-                  accept={API_CONFIG.supportedFileTypes.join(',')}
+                  accept={[...API_CONFIG.supportedAudioFormats, ...API_CONFIG.supportedImageFormats, ...API_CONFIG.supportedDocumentFormats].join(',')}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) handleFileSelect(file);
@@ -187,7 +201,7 @@ export const UploadForm = ({ inputUrl, setInputUrl, uploadedFile, setUploadedFil
         </div>
         <Button
           onClick={() => {
-            if (inputUrl) handleUrlSubmit();
+            if (inputUrl) onUrlSubmit(inputUrl);
           }}
           disabled={!inputUrl || processing}
         >

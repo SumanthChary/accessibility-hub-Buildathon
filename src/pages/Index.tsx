@@ -11,6 +11,7 @@ import { Testimonials } from '@/components/Testimonials';
 import { FAQ } from '@/components/FAQ';
 import { CTA } from '@/components/CTA';
 import { Footer } from '@/components/Footer';
+import { usePreview } from '@/hooks/use-preview';
 
 const Index = () => {
   const [inputUrl, setInputUrl] = useState('');
@@ -25,12 +26,18 @@ const Index = () => {
 
   const hasContent = Boolean(uploadedFile || inputUrl);
   const { user } = useAuth();
+  const { processUrl } = usePreview();
 
   const handleFeatureToggle = (feature: string) => {
     setFeatures(prev => ({
       ...prev,
       [feature]: !prev[feature as keyof typeof prev]
     }));
+  };
+
+  const handleUrlSubmit = async (url: string) => {
+    if (!url) return;
+    await processUrl(url);
   };
 
   return (
@@ -49,13 +56,12 @@ const Index = () => {
                 <p className="text-lg text-gray-600">
                   Upload a file or paste a URL to see how we can make your content accessible.
                 </p>
-              </div>
-
-              <UploadForm 
+              </div>              <UploadForm
                 inputUrl={inputUrl}
                 setInputUrl={setInputUrl}
                 uploadedFile={uploadedFile}
                 setUploadedFile={setUploadedFile}
+                onUrlSubmit={handleUrlSubmit}
               />
 
               <FeatureToggles 
