@@ -1,31 +1,32 @@
+
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
-import { supabase, type Profile, type ProcessingQuota } from '@/lib/supabase';
+import { supabase, type Profile } from '@/lib/supabase';
+import { AuthState, AuthContext } from '@/types/auth';
+import {
+  getInitialSession,
+  fetchUserProfile,
+  fetchUserQuota,
+  signInWithOAuth,
+  signOutUser,
+  updateUserProfile
+} from '@/services/auth.service';
 
-export interface AuthState {
-  user: User | null;
-  profile: Profile | null;
-  quota: ProcessingQuota | null;
-  loading: boolean;
-  error: string | null;
-}
-
-export function useAuth() {
+export function useAuth(): AuthContext {
   const [state, setState] = useState<AuthState>({
     user: null,
     profile: null,
     quota: null,
-    loading: false, // Set to false initially if no Supabase
+    loading: false,
     error: null
   });
 
   useEffect(() => {
     let mounted = true;
 
-    async function getInitialSession() {
+    async function initializeAuth() {
       try {
         if (!supabase) {
-          // No Supabase configured, set loading to false
           setState({
             user: null,
             profile: null,
@@ -38,42 +39,24 @@ export function useAuth() {
 
         setState(prev => ({ ...prev, loading: true }));
 
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const session = await getInitialSession();
         
         if (!mounted) return;
 
-        if (sessionError) {
-          console.error('Session error:', sessionError);
-          setState(prev => ({
-            ...prev,
-            loading: false,
-            error: sessionError.message
-          }));
-          return;
-        }
-
         if (session?.user) {
           try {
-            const [profileResult, quotaResult] = await Promise.allSettled([
-              supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single(),
-              supabase
-                .from('processing_quota')
-                .select('*')
-                .eq('user_id', session.user.id)
-                .single()
+            const [profile, quota] = await Promise.allSettled([
+              fetchUserProfile(session.user.id),
+              fetchUserQuota(session.user.id)
             ]);
 
-            const profile = profileResult.status === 'fulfilled' ? profileResult.value.data : null;
-            const quota = quotaResult.status === 'fulfilled' ? quotaResult.value.data : null;
+            const profileData = profile.status === 'fulfilled' ? profile.value : null;
+            const quotaData = quota.status === 'fulfilled' ? quota.value : null;
 
             setState({
               user: session.user,
-              profile,
-              quota,
+              profile: profileData,
+              quota: quotaData,
               loading: false,
               error: null
             });
@@ -84,7 +67,7 @@ export function useAuth() {
               profile: null,
               quota: null,
               loading: false,
-              error: null // Don't show error for missing profile/quota
+              error: null
             });
           }
         } else {
@@ -107,9 +90,8 @@ export function useAuth() {
       }
     }
 
-    getInitialSession();
+    initializeAuth();
 
-    // Only set up auth listener if Supabase is configured
     if (supabase) {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
@@ -119,26 +101,18 @@ export function useAuth() {
 
           if (session?.user) {
             try {
-              const [profileResult, quotaResult] = await Promise.allSettled([
-                supabase
-                  .from('profiles')
-                  .select('*')
-                  .eq('id', session.user.id)
-                  .single(),
-                supabase
-                  .from('processing_quota')
-                  .select('*')
-                  .eq('user_id', session.user.id)
-                  .single()
+              const [profile, quota] = await Promise.allSettled([
+                fetchUserProfile(session.user.id),
+                fetchUserQuota(session.user.id)
               ]);
 
-              const profile = profileResult.status === 'fulfilled' ? profileResult.value.data : null;
-              const quota = quotaResult.status === 'fulfilled' ? quotaResult.value.data : null;
+              const profileData = profile.status === 'fulfilled' ? profile.value : null;
+              const quotaData = quota.status === 'fulfilled' ? quota.value : null;
 
               setState({
                 user: session.user,
-                profile,
-                quota,
+                profile: profileData,
+                quota: quotaData,
                 loading: false,
                 error: null
               });
@@ -177,22 +151,8 @@ export function useAuth() {
 
   const signIn = async (provider: 'google' | 'github') => {
     try {
-      if (!supabase) {
-        setState(prev => ({
-          ...prev,
-          error: 'Authentication requires Supabase configuration'
-        }));
-        return;
-      }
-
       setState(prev => ({ ...prev, error: null }));
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-      if (error) throw error;
+      await signInWithOAuth(provider);
     } catch (error) {
       console.error('Sign in error:', error);
       setState(prev => ({
@@ -204,11 +164,8 @@ export function useAuth() {
 
   const signOut = async () => {
     try {
-      if (!supabase) return;
-
       setState(prev => ({ ...prev, error: null }));
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      await signOutUser();
     } catch (error) {
       console.error('Sign out error:', error);
       setState(prev => ({
@@ -220,7 +177,7 @@ export function useAuth() {
 
   const updateProfile = async (profileData: Partial<Profile>) => {
     try {
-      if (!supabase || !state.user) {
+      if (!state.user) {
         setState(prev => ({
           ...prev,
           error: 'Authentication required to update profile'
@@ -229,29 +186,8 @@ export function useAuth() {
       }
 
       setState(prev => ({ ...prev, error: null }));
-
-      // Update user metadata in auth
-      const { error: authError } = await supabase.auth.updateUser({
-        data: {
-          full_name: profileData.full_name,
-          username: profileData.username,
-          avatar_url: profileData.avatar_url,
-        }
-      });
-
-      if (authError) throw authError;
-
-      // Update profile in database if it exists
-      if (state.profile) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update(profileData)
-          .eq('id', state.user.id);
-
-        if (profileError) {
-          console.warn('Profile update in database failed:', profileError);
-        }
-      }
+      
+      await updateUserProfile(state.user, profileData);
 
       // Update local state
       setState(prev => ({

@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/supabase';
 
@@ -20,6 +19,7 @@ export interface Profile {
   id: string;
   email: string;
   full_name?: string;
+  username?: string;
   avatar_url?: string;
   updated_at?: string;
   api_quota?: number;
