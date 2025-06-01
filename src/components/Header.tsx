@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, User, CreditCard } from 'lucide-react';
+import { Menu, X, User, CreditCard, FileText, LogOut } from 'lucide-react';
 import { useState } from 'react';
 
 export const Header = () => {
@@ -29,11 +29,11 @@ export const Header = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-2">
-          <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center">
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
             <span className="text-white font-bold text-sm">A</span>
           </div>
           <span className="hidden font-bold text-xl text-gray-900 sm:inline-block">
@@ -47,9 +47,10 @@ export const Header = () => {
             <Link
               key={item.name}
               to={item.href}
-              className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+              className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors relative group"
             >
               {item.name}
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
             </Link>
           ))}
         </nav>
@@ -61,9 +62,9 @@ export const Header = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                    <Avatar className="h-9 w-9">
+                    <Avatar className="h-9 w-9 ring-2 ring-blue-100">
                       <AvatarImage src={user.user_metadata?.avatar_url} alt={user.user_metadata?.full_name} />
-                      <AvatarFallback>
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
                         {user.user_metadata?.full_name?.[0] ?? user.email?.[0]?.toUpperCase() ?? 'U'}
                       </AvatarFallback>
                     </Avatar>
@@ -78,11 +79,16 @@ export const Header = () => {
                     <User className="mr-2 h-4 w-4" />
                     Profile
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/results')}>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Results
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/payments')}>
                     <CreditCard className="mr-2 h-4 w-4" />
                     Payments
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => signOut()}>
+                    <LogOut className="mr-2 h-4 w-4" />
                     Sign out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -94,12 +100,14 @@ export const Header = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate('/auth')}
+                className="hover:bg-blue-50 hover:text-blue-600"
               >
                 Sign in
               </Button>
               <Button
                 size="sm"
                 onClick={() => navigate('/auth')}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg"
               >
                 Get Started
               </Button>
@@ -120,13 +128,13 @@ export const Header = () => {
 
       {/* Mobile Navigation */}
       {isMobileMenuOpen && (
-        <div className="md:hidden border-t bg-white">
+        <div className="md:hidden border-t bg-white shadow-lg">
           <div className="px-4 py-3 space-y-3">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
-                className="block text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                className="block text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors py-2"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {item.name}
@@ -147,7 +155,7 @@ export const Header = () => {
                 </Button>
                 <Button
                   size="sm"
-                  className="w-full"
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600"
                   onClick={() => {
                     navigate('/auth');
                     setIsMobileMenuOpen(false);

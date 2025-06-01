@@ -9,13 +9,102 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      processing_history: {
+        Row: {
+          created_at: string | null
+          file_name: string
+          file_size: number
+          id: string
+          processing_time: number
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          file_name: string
+          file_size: number
+          id?: string
+          processing_time: number
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string
+          file_size?: number
+          id?: string
+          processing_time?: number
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      processing_quota: {
+        Row: {
+          audio_minutes: number | null
+          image_count: number | null
+          pdf_pages: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          audio_minutes?: number | null
+          image_count?: number | null
+          pdf_pages?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          audio_minutes?: number | null
+          image_count?: number | null
+          pdf_pages?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          api_quota: number | null
+          avatar_url: string | null
+          email: string
+          full_name: string | null
+          id: string
+          subscription_tier: string | null
+          updated_at: string | null
+          username: string | null
+        }
+        Insert: {
+          api_quota?: number | null
+          avatar_url?: string | null
+          email: string
+          full_name?: string | null
+          id: string
+          subscription_tier?: string | null
+          updated_at?: string | null
+          username?: string | null
+        }
+        Update: {
+          api_quota?: number | null
+          avatar_url?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          subscription_tier?: string | null
+          updated_at?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      decrement_quota: {
+        Args: { user_id: string; quota_type: string; amount?: number }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

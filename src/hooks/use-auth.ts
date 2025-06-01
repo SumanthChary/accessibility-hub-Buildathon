@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { AuthState, AuthContext } from '@/types/auth';
+import type { Database } from '@/integrations/supabase/types';
 import {
   getInitialSession,
   fetchUserProfile,
@@ -10,6 +11,8 @@ import {
   signOutUser,
   updateUserProfile
 } from '@/services/auth.service';
+
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
 export function useAuth(): AuthContext {
   const [state, setState] = useState<AuthState>({

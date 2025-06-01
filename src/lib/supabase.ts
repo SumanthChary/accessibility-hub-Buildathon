@@ -1,19 +1,16 @@
+
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from '@/types/supabase';
+import type { Database } from '@/integrations/supabase/types';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = "https://tcodkxsulqoabihlcagu.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjb2RreHN1bHFvYWJpaGxjYWd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg2MDEyMTYsImV4cCI6MjA2NDE3NzIxNn0.EY-cM2XjYbp64Wki6g21bYYnrk3nQ0Kgm6HiYAnTIDQ";
 
-// Create a mock client if environment variables are not provided
-const createSupabaseClient = () => {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn('Supabase environment variables not found. Some features will be disabled.');
-    return null;
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
   }
-  return createClient<Database>(supabaseUrl, supabaseAnonKey);
-};
-
-export const supabase = createSupabaseClient();
+});
 
 export interface Profile {
   id: string;
