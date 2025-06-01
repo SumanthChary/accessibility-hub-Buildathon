@@ -1,14 +1,20 @@
+
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/supabase';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
+// Create a mock client if environment variables are not provided
+const createSupabaseClient = () => {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.warn('Supabase environment variables not found. Some features will be disabled.');
+    return null;
+  }
+  return createClient<Database>(supabaseUrl, supabaseAnonKey);
+};
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+export const supabase = createSupabaseClient();
 
 export interface Profile {
   id: string;
@@ -29,6 +35,8 @@ export interface ProcessingQuota {
 // Profile-related functions
 export const getProfile = async (userId: string): Promise<Profile | null> => {
   try {
+    if (!supabase) return null;
+    
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -46,6 +54,8 @@ export const getProfile = async (userId: string): Promise<Profile | null> => {
 // Check and update processing quota
 export const checkQuota = async (userId: string, type: keyof ProcessingQuota): Promise<boolean> => {
   try {
+    if (!supabase) return true; // Allow all operations if no Supabase
+    
     const { data: quota, error } = await supabase
       .from('processing_quota')
       .select('*')
@@ -78,6 +88,8 @@ export const updateQuota = async (
   amount: number
 ): Promise<void> => {
   try {
+    if (!supabase) return; // Skip if no Supabase
+    
     const { error } = await supabase.rpc('decrement_quota', {
       user_id: userId,
       quota_type: type,

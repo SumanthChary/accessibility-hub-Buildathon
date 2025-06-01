@@ -1,9 +1,11 @@
+
 import { useState } from 'react';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 
 export const AuthUI = () => {
   const [loading, setLoading] = useState(false);
@@ -26,6 +28,29 @@ export const AuthUI = () => {
       input: 'w-full px-3 py-2 border rounded',
     },
   };
+
+  if (!supabase) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-md">
+          <div>
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+              Authentication Unavailable
+            </h2>
+            <p className="mt-2 text-center text-sm text-gray-600">
+              Supabase configuration is required for authentication
+            </p>
+          </div>
+          <Button 
+            onClick={() => navigate('/')}
+            className="w-full"
+          >
+            Continue to App
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

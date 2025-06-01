@@ -16,7 +16,7 @@ export function useAuth() {
     user: null,
     profile: null,
     quota: null,
-    loading: true,
+    loading: false, // Set to false initially if no Supabase
     error: null
   });
 
@@ -25,6 +25,20 @@ export function useAuth() {
 
     async function getInitialSession() {
       try {
+        if (!supabase) {
+          // No Supabase configured, set loading to false
+          setState({
+            user: null,
+            profile: null,
+            quota: null,
+            loading: false,
+            error: null
+          });
+          return;
+        }
+
+        setState(prev => ({ ...prev, loading: true }));
+
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (!mounted) return;
@@ -96,67 +110,82 @@ export function useAuth() {
 
     getInitialSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
+    // Only set up auth listener if Supabase is configured
+    if (supabase) {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (!mounted) return;
 
-        console.log('Auth state changed:', event, session?.user?.email);
+          console.log('Auth state changed:', event, session?.user?.email);
 
-        if (session?.user) {
-          try {
-            const [profileResult, quotaResult] = await Promise.allSettled([
-              supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single(),
-              supabase
-                .from('processing_quota')
-                .select('*')
-                .eq('user_id', session.user.id)
-                .single()
-            ]);
+          if (session?.user) {
+            try {
+              const [profileResult, quotaResult] = await Promise.allSettled([
+                supabase
+                  .from('profiles')
+                  .select('*')
+                  .eq('id', session.user.id)
+                  .single(),
+                supabase
+                  .from('processing_quota')
+                  .select('*')
+                  .eq('user_id', session.user.id)
+                  .single()
+              ]);
 
-            const profile = profileResult.status === 'fulfilled' ? profileResult.value.data : null;
-            const quota = quotaResult.status === 'fulfilled' ? quotaResult.value.data : null;
+              const profile = profileResult.status === 'fulfilled' ? profileResult.value.data : null;
+              const quota = quotaResult.status === 'fulfilled' ? quotaResult.value.data : null;
 
+              setState({
+                user: session.user,
+                profile,
+                quota,
+                loading: false,
+                error: null
+              });
+            } catch (error) {
+              console.error('Profile/quota fetch error on auth change:', error);
+              setState({
+                user: session.user,
+                profile: null,
+                quota: null,
+                loading: false,
+                error: null
+              });
+            }
+          } else {
             setState({
-              user: session.user,
-              profile,
-              quota,
-              loading: false,
-              error: null
-            });
-          } catch (error) {
-            console.error('Profile/quota fetch error on auth change:', error);
-            setState({
-              user: session.user,
+              user: null,
               profile: null,
               quota: null,
               loading: false,
               error: null
             });
           }
-        } else {
-          setState({
-            user: null,
-            profile: null,
-            quota: null,
-            loading: false,
-            error: null
-          });
         }
-      }
-    );
+      );
+
+      return () => {
+        mounted = false;
+        subscription.unsubscribe();
+      };
+    }
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
     };
   }, []);
 
   const signIn = async (provider: 'google' | 'github') => {
     try {
+      if (!supabase) {
+        setState(prev => ({
+          ...prev,
+          error: 'Authentication requires Supabase configuration'
+        }));
+        return;
+      }
+
       setState(prev => ({ ...prev, error: null }));
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -176,6 +205,8 @@ export function useAuth() {
 
   const signOut = async () => {
     try {
+      if (!supabase) return;
+
       setState(prev => ({ ...prev, error: null }));
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
