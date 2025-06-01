@@ -32,9 +32,9 @@ interface DocumentAnalysis {
   simplifiedText?: string;
 }
 
-// Helper function to check if an item is a text item
-function isTextItem(item: any): item is { str: string } {
-  return item && typeof item.str === 'string';
+// Helper function to check if an item has text content
+function hasTextContent(item: any): item is { str: string } {
+  return item && typeof item === 'object' && 'str' in item && typeof item.str === 'string';
 }
 
 export class DocumentService {
@@ -51,7 +51,7 @@ export class DocumentService {
         const page = await pdf.getPage(i);
         const content = await page.getTextContent();
         const pageText = content.items
-          .filter(isTextItem)
+          .filter(hasTextContent)
           .map(item => item.str)
           .join(' ');
         
