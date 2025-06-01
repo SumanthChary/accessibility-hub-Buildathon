@@ -1,16 +1,18 @@
+
 import { groqClient } from '../lib/api-config';
 import * as pdfjsLib from 'pdfjs-dist';
 
 // Initialize PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
-interface TextItem {
+interface CustomTextItem {
   str: string;
   dir: string;
   width: number;
   height: number;
   transform: number[];
   fontName: string;
+  hasEOL?: boolean;
 }
 
 interface PageStructure {
@@ -54,7 +56,7 @@ export class DocumentService {
         const page = await pdf.getPage(i);
         const content = await page.getTextContent();
         const pageText = content.items
-          .filter((item): item is TextItem => 'str' in item)
+          .filter((item): item is CustomTextItem => 'str' in item)
           .map(item => item.str)
           .join(' ');
         
@@ -67,27 +69,41 @@ export class DocumentService {
 
       const metadata = await pdf.getMetadata() as PDFMetadata;
 
-      // Use Groq for text analysis
-      const response = await groqClient.chat.completions.create({
-        model: "meta-llama/llama-4-scout-17b-16e-instruct",
-        messages: [
-          {
-            role: 'system',
-            content: 'Analyze and simplify the following document text. Provide: 1) A concise summary (max 3 sentences) 2) A simplified version in plain language'
-          },
-          {
-            role: 'user',
-            content: `Text to analyze: ${fullText.substring(0, 4000)}...`
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 2048
-      });
+      let summary = '';
+      let simplifiedText = '';
 
-      const analysisContent = response.choices[0]?.message?.content || '';
-      const [summary = '', simplifiedText = ''] = analysisContent.split('\n\n').map(text => 
-        text.replace(/^(Summary:|Simplified Version:)/i, '').trim()
-      );
+      // Use Groq for text analysis if available
+      if (groqClient && fullText.length > 0) {
+        try {
+          const response = await groqClient.chat.completions.create({
+            model: "mixtral-8x7b-32768",
+            messages: [
+              {
+                role: 'system',
+                content: 'Analyze and simplify the following document text. Provide: 1) A concise summary (max 3 sentences) 2) A simplified version in plain language'
+              },
+              {
+                role: 'user',
+                content: `Text to analyze: ${fullText.substring(0, 4000)}...`
+              }
+            ],
+            temperature: 0.3,
+            max_tokens: 2048
+          });
+
+          const analysisContent = response.choices[0]?.message?.content || '';
+          const parts = analysisContent.split('\n\n');
+          summary = parts[0]?.replace(/^(Summary:|Simplified Version:)/i, '').trim() || 'Summary not available';
+          simplifiedText = parts[1]?.replace(/^(Summary:|Simplified Version:)/i, '').trim() || 'Simplified text not available';
+        } catch (error) {
+          console.warn('AI analysis failed:', error);
+          summary = 'AI analysis unavailable';
+          simplifiedText = 'Text simplification unavailable';
+        }
+      } else {
+        summary = 'AI analysis requires API key configuration';
+        simplifiedText = 'Text simplification requires API key configuration';
+      }
 
       return {
         text: fullText,
@@ -103,10 +119,45 @@ export class DocumentService {
     }
   }
 
+  static async extractInformation(file: File, query: string): Promise<string> {
+    try {
+      const analysis = await this.parsePDF(file);
+      
+      if (!groqClient) {
+        return `Based on the query "${query}", here's the extracted text from the document: ${analysis.text.substring(0, 1000)}...`;
+      }
+
+      const response = await groqClient.chat.completions.create({
+        model: "mixtral-8x7b-32768",
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert at extracting specific information from documents. Answer the user\'s query based on the provided document text.'
+          },
+          {
+            role: 'user',
+            content: `Document text: ${analysis.text.substring(0, 4000)}\n\nQuery: ${query}`
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 1024
+      });
+
+      return response.choices[0]?.message?.content || 'No information found for the given query.';
+    } catch (error) {
+      console.error('Information extraction error:', error);
+      throw new Error('Failed to extract information from document');
+    }
+  }
+
   static async simplifyText(text: string): Promise<string> {
     try {
+      if (!groqClient) {
+        return `Simplified version: ${text.substring(0, 500)}... (AI simplification requires API key configuration)`;
+      }
+
       const response = await groqClient.chat.completions.create({
-        model: "meta-llama/llama-4-scout-17b-16e-instruct",
+        model: "mixtral-8x7b-32768",
         messages: [
           {
             role: 'system',

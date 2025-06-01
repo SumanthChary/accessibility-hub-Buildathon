@@ -1,4 +1,6 @@
 
+import Groq from 'groq-sdk';
+
 // API Configuration without hardcoded keys
 export const API_CONFIG = {
   maxAudioFileSize: 25 * 1024 * 1024, // 25MB max for speech-to-text
@@ -37,16 +39,20 @@ export const isFileTypeSupported = (file: File, supportedTypes: string[]) => {
   return supportedTypes.includes(file.type);
 };
 
-// Initialize Groq client only when needed and with proper error handling
-export const createGroqClient = () => {
+// Initialize Groq client - will be null if no API key is provided
+export const groqClient = (() => {
   try {
-    // This will be handled by Supabase edge functions in production
-    return null;
+    const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+    if (!apiKey) {
+      console.warn('GROQ API key not found. Some features will be disabled.');
+      return null;
+    }
+    return new Groq({ apiKey, dangerouslyAllowBrowser: true });
   } catch (error) {
-    console.warn('Groq client not available:', error);
+    console.warn('Groq client initialization failed:', error);
     return null;
   }
-};
+})();
 
 // Initialize Lyzer client configuration
 export const lyzerConfig = {
