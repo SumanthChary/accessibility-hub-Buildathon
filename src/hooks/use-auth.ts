@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase, type Profile, type ProcessingQuota } from '@/lib/supabase';
@@ -219,9 +218,71 @@ export function useAuth() {
     }
   };
 
+  const updateProfile = async (profileData: Partial<Profile>) => {
+    try {
+      if (!supabase || !state.user) {
+        setState(prev => ({
+          ...prev,
+          error: 'Authentication required to update profile'
+        }));
+        return;
+      }
+
+      setState(prev => ({ ...prev, error: null }));
+
+      // Update user metadata in auth
+      const { error: authError } = await supabase.auth.updateUser({
+        data: {
+          full_name: profileData.full_name,
+          username: profileData.username,
+          avatar_url: profileData.avatar_url,
+        }
+      });
+
+      if (authError) throw authError;
+
+      // Update profile in database if it exists
+      if (state.profile) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update(profileData)
+          .eq('id', state.user.id);
+
+        if (profileError) {
+          console.warn('Profile update in database failed:', profileError);
+        }
+      }
+
+      // Update local state
+      setState(prev => ({
+        ...prev,
+        user: prev.user ? {
+          ...prev.user,
+          user_metadata: {
+            ...prev.user.user_metadata,
+            ...profileData
+          }
+        } : null,
+        profile: prev.profile ? {
+          ...prev.profile,
+          ...profileData
+        } : null
+      }));
+
+    } catch (error) {
+      console.error('Update profile error:', error);
+      setState(prev => ({
+        ...prev,
+        error: error instanceof Error ? error.message : 'Failed to update profile'
+      }));
+      throw error;
+    }
+  };
+
   return {
     ...state,
     signIn,
     signOut,
+    updateProfile,
   };
 }
