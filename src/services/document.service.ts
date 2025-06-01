@@ -1,6 +1,7 @@
 
 import { groqClient } from '../lib/api-config';
 import * as pdfjsLib from 'pdfjs-dist';
+import type { TextItem, TextMarkedContent } from 'pdfjs-dist/types/src/display/api';
 
 // Initialize PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
@@ -32,9 +33,9 @@ interface DocumentAnalysis {
   simplifiedText?: string;
 }
 
-// Helper function to check if an item has text content
-function hasTextContent(item: any): item is { str: string } {
-  return item && typeof item === 'object' && 'str' in item && typeof item.str === 'string';
+// Helper function to check if an item is a TextItem with str property
+function hasTextContent(item: TextItem | TextMarkedContent): item is TextItem {
+  return 'str' in item && typeof (item as TextItem).str === 'string';
 }
 
 export class DocumentService {

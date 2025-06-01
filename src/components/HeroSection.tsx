@@ -1,56 +1,94 @@
+
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Sparkles, Heart, Globe } from 'lucide-react';
+import { ArrowRight, Sparkles, Heart, Globe, Shield, Zap } from 'lucide-react';
 
 export const HeroSection = () => {
   return (
-    <section className="relative min-h-[80vh] flex items-center justify-center py-20 bg-gradient-to-b from-white to-gray-50 overflow-hidden">
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-10 left-10 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
-        <div className="absolute top-0 right-0 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-10 left-20 w-72 h-72 bg-green-400 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
+    <section className="relative min-h-[85vh] flex items-center justify-center py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-green-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"></div>
       </div>
       
-      <div className="container relative mx-auto text-center px-4 space-y-8">
-        <h1 className="text-5xl font-bold tracking-tight text-gray-900 sm:text-6xl mb-6 animate-fade-in">
-          Make Your Content <span className="text-blue-600">Accessible</span>
-        </h1>
-        <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto animate-fade-in animation-delay-200">
-          Transform your audio, images, and PDFs into accessible formats instantly.
-          Powered by AI to ensure everyone can access your content.
-        </p>
-        <div className="flex items-center justify-center gap-4 animate-fade-in animation-delay-400">
-          <Button
-            size="lg"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8"
-            onClick={() => {
-              document.getElementById('demo-section')?.scrollIntoView({ behavior: 'smooth' });
-            }}
-          >
-            Try it now <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            onClick={() => {
-              document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-            }}
-          >
-            Learn more <Sparkles className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-        
-        <div className="flex justify-center items-center gap-8 mt-12 text-gray-600">
-          <div className="flex items-center">
-            <Globe className="w-5 h-5 mr-2" />
-            <span>Global Access</span>
+      <div className="container relative mx-auto text-center px-4 sm:px-6 lg:px-8 max-w-6xl">
+        <div className="space-y-6 sm:space-y-8">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium">
+            <Sparkles className="h-4 w-4" />
+            AI-Powered Accessibility Platform
           </div>
-          <div className="flex items-center">
-            <Heart className="w-5 h-5 mr-2" />
-            <span>Inclusive Design</span>
+
+          {/* Main heading */}
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 leading-tight">
+            Make Your Content{' '}
+            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+              Accessible
+            </span>{' '}
+            for Everyone
+          </h1>
+
+          {/* Subheading */}
+          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Transform audio, images, and PDFs into accessible formats instantly. 
+            Powered by cutting-edge AI to ensure everyone can access your content.
+          </p>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+            <Button
+              size="lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+              onClick={() => {
+                document.getElementById('demo-section')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              <Sparkles className="mr-2 h-5 w-5" />
+              Try it Free
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="px-8 py-3 text-lg rounded-xl border-2 hover:bg-gray-50"
+              onClick={() => {
+                document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              Learn More
+            </Button>
           </div>
-          <div className="flex items-center">
-            <Sparkles className="w-5 h-5 mr-2" />
-            <span>AI-Powered</span>
+
+          {/* Trust indicators */}
+          <div className="pt-8 sm:pt-12">
+            <p className="text-sm text-gray-500 mb-6">Trusted by accessibility advocates worldwide</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 items-center justify-center">
+              <div className="flex items-center justify-center space-x-2 text-gray-600">
+                <Globe className="w-5 h-5" />
+                <span className="text-sm font-medium">Global</span>
+              </div>
+              <div className="flex items-center justify-center space-x-2 text-gray-600">
+                <Shield className="w-5 h-5" />
+                <span className="text-sm font-medium">Secure</span>
+              </div>
+              <div className="flex items-center justify-center space-x-2 text-gray-600">
+                <Zap className="w-5 h-5" />
+                <span className="text-sm font-medium">Fast</span>
+              </div>
+              <div className="flex items-center justify-center space-x-2 text-gray-600">
+                <Heart className="w-5 h-5" />
+                <span className="text-sm font-medium">Inclusive</span>
+              </div>
+              <div className="flex items-center justify-center space-x-2 text-gray-600">
+                <Sparkles className="w-5 h-5" />
+                <span className="text-sm font-medium">AI-Powered</span>
+              </div>
+              <div className="flex items-center justify-center space-x-2 text-gray-600">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span className="text-sm font-medium">99.2% Uptime</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
