@@ -1,11 +1,9 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Upload, Link as LinkIcon, Mic, Image, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useSpeech } from '@/hooks/use-speech';
-import { useVision } from '@/hooks/use-vision';
-import { useDocument } from '@/hooks/use-document';
 import { API_CONFIG } from '@/lib/api-config';
 
 interface UploadFormProps {
@@ -26,9 +24,6 @@ export const UploadForm = ({
   const [isDragOver, setIsDragOver] = useState(false);
   const [processing, setProcessing] = useState(false);
   const { toast } = useToast();
-  const { transcribeAudio, synthesizeSpeech } = useSpeech();
-  const { analyzeImage, answerImageQuestion } = useVision();
-  const { parseDocument, extractInformation } = useDocument();
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -65,17 +60,18 @@ export const UploadForm = ({
     if (!supportedTypes.includes(file.type)) {
       toast({
         title: 'Unsupported File Type',
-        description: `Please upload one of: ${supportedTypes.join(', ')}`,
+        description: `Please upload one of: Audio (MP3, WAV), Images (JPG, PNG, WebP), or PDF files`,
         variant: 'destructive'
       });
       return;
     }
 
     // Check file size
-    if (isAudio && file.size > API_CONFIG.maxAudioFileSize) {
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (file.size > maxSize) {
       toast({
         title: "File too large",
-        description: "Audio files must be less than 25MB.",
+        description: "Files must be less than 50MB.",
         variant: "destructive"
       });
       return;
@@ -83,37 +79,11 @@ export const UploadForm = ({
 
     setUploadedFile(file);
     setInputUrl('');
-    setProcessing(true);
-
-    try {
-      if (isAudio) {
-        const transcript = await transcribeAudio(file);
-        toast({
-          title: "Audio transcribed successfully",
-          description: "Your audio has been converted to text."
-        });
-      } else if (isImage) {
-        const analysis = await analyzeImage(file);
-        toast({
-          title: "Image analyzed successfully",
-          description: "Image analysis and description are ready."
-        });
-      } else if (isPDF) {
-        const parsedDoc = await parseDocument(file);
-        toast({
-          title: "Document processed successfully",
-          description: "Document content and structure extracted."
-        });
-      }
-    } catch (err) {
-      toast({
-        title: "Processing failed",
-        description: err instanceof Error ? err.message : "An error occurred",
-        variant: "destructive"
-      });
-    } finally {
-      setProcessing(false);
-    }
+    
+    toast({
+      title: "File uploaded successfully",
+      description: `${file.name} is ready for processing.`
+    });
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,7 +96,7 @@ export const UploadForm = ({
   const handleUrlSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputUrl.trim()) {
-      setUploadedFile(null); // Clear file if URL is entered
+      setUploadedFile(null);
       onUrlSubmit(inputUrl.trim());
       toast({
         title: "URL added successfully",
@@ -177,10 +147,7 @@ export const UploadForm = ({
                   type="file"
                   className="sr-only"
                   accept={[...API_CONFIG.supportedAudioFormats, ...API_CONFIG.supportedImageFormats, ...API_CONFIG.supportedDocumentFormats].join(',')}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleFileSelect(file);
-                  }}
+                  onChange={handleFileInputChange}
                 />
               </Button>
             </label>
@@ -200,9 +167,7 @@ export const UploadForm = ({
           />
         </div>
         <Button
-          onClick={() => {
-            if (inputUrl) onUrlSubmit(inputUrl);
-          }}
+          onClick={handleUrlSubmit}
           disabled={!inputUrl || processing}
         >
           Process URL

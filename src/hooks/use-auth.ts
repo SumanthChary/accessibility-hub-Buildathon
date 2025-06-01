@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase, type Profile, type ProcessingQuota } from '@/lib/supabase';
@@ -24,78 +25,37 @@ export function useAuth() {
 
     async function getInitialSession() {
       try {
-        // Get initial session
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (!mounted) return;
 
-        if (session?.user) {
-          // Get profile and quota
-          const [profile, quota] = await Promise.all([
-            supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single()
-              .then(({ data }) => data),
-            supabase
-              .from('processing_quota')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .single()
-              .then(({ data }) => data)
-          ]);
-
-          setState({
-            user: session.user,
-            profile,
-            quota,
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          setState(prev => ({
+            ...prev,
             loading: false,
-            error: null
-          });
-        } else {
-          setState({
-            user: null,
-            profile: null,
-            quota: null,
-            loading: false,
-            error: null
-          });
+            error: sessionError.message
+          }));
+          return;
         }
-      } catch (error) {
-        if (!mounted) return;
-        console.error('Auth error:', error);
-        setState(prev => ({
-          ...prev,
-          loading: false,
-          error: 'Failed to load user session'
-        }));
-      }
-    }
-
-    getInitialSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        if (!mounted) return;
 
         if (session?.user) {
           try {
-            const [profile, quota] = await Promise.all([
+            const [profileResult, quotaResult] = await Promise.allSettled([
               supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', session.user.id)
-                .single()
-                .then(({ data }) => data),
+                .single(),
               supabase
                 .from('processing_quota')
                 .select('*')
                 .eq('user_id', session.user.id)
                 .single()
-                .then(({ data }) => data)
             ]);
+
+            const profile = profileResult.status === 'fulfilled' ? profileResult.value.data : null;
+            const quota = quotaResult.status === 'fulfilled' ? quotaResult.value.data : null;
 
             setState({
               user: session.user,
@@ -111,7 +71,70 @@ export function useAuth() {
               profile: null,
               quota: null,
               loading: false,
-              error: 'Failed to load user data'
+              error: null // Don't show error for missing profile/quota
+            });
+          }
+        } else {
+          setState({
+            user: null,
+            profile: null,
+            quota: null,
+            loading: false,
+            error: null
+          });
+        }
+      } catch (error) {
+        if (!mounted) return;
+        console.error('Auth initialization error:', error);
+        setState(prev => ({
+          ...prev,
+          loading: false,
+          error: 'Failed to initialize authentication'
+        }));
+      }
+    }
+
+    getInitialSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!mounted) return;
+
+        console.log('Auth state changed:', event, session?.user?.email);
+
+        if (session?.user) {
+          try {
+            const [profileResult, quotaResult] = await Promise.allSettled([
+              supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single(),
+              supabase
+                .from('processing_quota')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .single()
+            ]);
+
+            const profile = profileResult.status === 'fulfilled' ? profileResult.value.data : null;
+            const quota = quotaResult.status === 'fulfilled' ? quotaResult.value.data : null;
+
+            setState({
+              user: session.user,
+              profile,
+              quota,
+              loading: false,
+              error: null
+            });
+          } catch (error) {
+            console.error('Profile/quota fetch error on auth change:', error);
+            setState({
+              user: session.user,
+              profile: null,
+              quota: null,
+              loading: false,
+              error: null
             });
           }
         } else {
@@ -134,6 +157,7 @@ export function useAuth() {
 
   const signIn = async (provider: 'google' | 'github') => {
     try {
+      setState(prev => ({ ...prev, error: null }));
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
@@ -145,20 +169,21 @@ export function useAuth() {
       console.error('Sign in error:', error);
       setState(prev => ({
         ...prev,
-        error: 'Failed to sign in'
+        error: error instanceof Error ? error.message : 'Failed to sign in'
       }));
     }
   };
 
   const signOut = async () => {
     try {
+      setState(prev => ({ ...prev, error: null }));
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
     } catch (error) {
       console.error('Sign out error:', error);
       setState(prev => ({
         ...prev,
-        error: 'Failed to sign out'
+        error: error instanceof Error ? error.message : 'Failed to sign out'
       }));
     }
   };

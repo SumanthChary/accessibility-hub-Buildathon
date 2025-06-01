@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Header } from '@/components/Header';
 import { HeroSection } from '@/components/HeroSection';
@@ -6,11 +7,11 @@ import { UploadForm } from '@/components/UploadForm';
 import { FeatureToggles } from '@/components/FeatureToggles';
 import { PreviewSection } from '@/components/PreviewSection';
 import { FeaturesShowcase } from '@/components/FeaturesShowcase';
+import { PricingPlans } from '@/components/PricingPlans';
 import { Testimonials } from '@/components/Testimonials';
 import { FAQ } from '@/components/FAQ';
 import { CTA } from '@/components/CTA';
 import { Footer } from '@/components/Footer';
-import { usePreview } from '@/hooks/use-preview';
 
 const Index = () => {
   const [inputUrl, setInputUrl] = useState('');
@@ -24,7 +25,6 @@ const Index = () => {
   });
 
   const hasContent = Boolean(uploadedFile || inputUrl);
-  const { processUrl } = usePreview();
 
   const handleFeatureToggle = (feature: string) => {
     setFeatures(prev => ({
@@ -35,11 +35,11 @@ const Index = () => {
 
   const handleUrlSubmit = async (url: string) => {
     if (!url) return;
-    await processUrl(url);
+    setInputUrl(url);
   };
 
   return (
-    <div className="min-h-screen bg-white fade-in">
+    <div className="min-h-screen bg-white">
       <Header />
       <main className="flex-grow">
         <HeroSection />
@@ -67,13 +67,19 @@ const Index = () => {
               <FeatureToggles features={features} onToggle={handleFeatureToggle} />
               
               {hasContent && (
-                <PreviewSection features={features} />
+                <PreviewSection 
+                  features={features} 
+                  hasContent={hasContent}
+                  file={uploadedFile}
+                  url={inputUrl}
+                />
               )}
             </div>
           </div>
         </section>
 
         <FeaturesShowcase />
+        <PricingPlans />
         <Testimonials />
         <FAQ />
         <CTA />
