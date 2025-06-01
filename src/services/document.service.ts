@@ -5,16 +5,6 @@ import * as pdfjsLib from 'pdfjs-dist';
 // Initialize PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
-interface CustomTextItem {
-  str: string;
-  dir: string;
-  width: number;
-  height: number;
-  transform: number[];
-  fontName: string;
-  hasEOL?: boolean;
-}
-
 interface PageStructure {
   pageNumber: number;
   textLength: number;
@@ -42,6 +32,11 @@ interface DocumentAnalysis {
   simplifiedText?: string;
 }
 
+// Helper function to check if an item is a text item
+function isTextItem(item: any): item is { str: string } {
+  return item && typeof item.str === 'string';
+}
+
 export class DocumentService {
   static async parsePDF(file: File): Promise<DocumentAnalysis> {
     try {
@@ -56,7 +51,7 @@ export class DocumentService {
         const page = await pdf.getPage(i);
         const content = await page.getTextContent();
         const pageText = content.items
-          .filter((item): item is CustomTextItem => 'str' in item)
+          .filter(isTextItem)
           .map(item => item.str)
           .join(' ');
         
