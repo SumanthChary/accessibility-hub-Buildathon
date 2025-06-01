@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { User } from '@supabase/supabase-js';
-import { supabase, type Profile } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { AuthState, AuthContext } from '@/types/auth';
 import {
   getInitialSession,
