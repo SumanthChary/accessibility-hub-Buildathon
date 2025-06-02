@@ -1,7 +1,7 @@
 
 import Groq from 'groq-sdk';
 
-// API Configuration without hardcoded keys
+// API Configuration with updated Groq API key
 export const API_CONFIG = {
   maxAudioFileSize: 25 * 1024 * 1024, // 25MB max for speech-to-text
   supportedAudioFormats: ['audio/wav', 'audio/mp3', 'audio/mpeg'],
@@ -39,14 +39,10 @@ export const isFileTypeSupported = (file: File, supportedTypes: string[]) => {
   return supportedTypes.includes(file.type);
 };
 
-// Initialize Groq client - will be null if no API key is provided
+// Initialize Groq client with your new API key
 export const groqClient = (() => {
   try {
-    const apiKey = import.meta.env.VITE_GROQ_API_KEY;
-    if (!apiKey) {
-      console.warn('GROQ API key not found. Some features will be disabled.');
-      return null;
-    }
+    const apiKey = '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';
     return new Groq({ apiKey, dangerouslyAllowBrowser: true });
   } catch (error) {
     console.warn('Groq client initialization failed:', error);

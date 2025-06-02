@@ -47,10 +47,6 @@ export const UploadForm = ({
 
   const handleFileSelect = async (file: File) => {
     // Check file type and size
-    const isAudio = file.type.startsWith('audio/');
-    const isImage = file.type.startsWith('image/');
-    const isPDF = file.type === 'application/pdf';
-    
     const supportedTypes = [
       ...API_CONFIG.supportedAudioFormats,
       ...API_CONFIG.supportedImageFormats,
@@ -106,10 +102,10 @@ export const UploadForm = ({
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-4">
+    <div className="w-full max-w-5xl mx-auto space-y-4 sm:space-y-6">
       <div 
         className={`
-          relative p-8 border-2 border-dashed rounded-lg transition-all
+          relative p-6 sm:p-8 lg:p-12 border-2 border-dashed rounded-lg sm:rounded-xl transition-all
           ${isDragOver 
             ? 'border-blue-500 bg-blue-50' 
             : 'border-gray-300 bg-white hover:border-gray-400'
@@ -119,16 +115,16 @@ export const UploadForm = ({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <div className="text-center space-y-4">
-          <div className="flex justify-center space-x-4">
-            <Mic className="w-8 h-8 text-blue-500" />
-            <Image className="w-8 h-8 text-green-500" />
-            <FileText className="w-8 h-8 text-purple-500" />
+        <div className="text-center space-y-4 sm:space-y-6">
+          <div className="flex justify-center space-x-3 sm:space-x-4 lg:space-x-6">
+            <Mic className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-blue-500" />
+            <Image className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-green-500" />
+            <FileText className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-purple-500" />
           </div>
           
-          <div>
-            <h3 className="text-lg font-semibold">Drag and drop your file here</h3>
-            <p className="text-sm text-gray-500">
+          <div className="space-y-2">
+            <h3 className="text-base sm:text-lg lg:text-xl font-semibold">Drag and drop your file here</h3>
+            <p className="text-xs sm:text-sm lg:text-base text-gray-500">
               Support for audio, images, and PDFs up to 50MB
             </p>
           </div>
@@ -137,7 +133,7 @@ export const UploadForm = ({
             <label htmlFor="file-upload" className="cursor-pointer">
               <Button 
                 variant="outline" 
-                className="relative"
+                className="relative px-4 sm:px-6 lg:px-8 py-2 sm:py-3 text-sm sm:text-base"
                 disabled={processing}
               >
                 <Upload className="w-4 h-4 mr-2" />
@@ -155,7 +151,7 @@ export const UploadForm = ({
         </div>
       </div>
 
-      <div className="flex items-center space-x-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
         <div className="relative flex-1">
           <LinkIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
@@ -163,30 +159,32 @@ export const UploadForm = ({
             placeholder="Or paste a URL to process..."
             value={inputUrl}
             onChange={(e) => setInputUrl(e.target.value)}
-            className="pl-10"
+            className="pl-10 py-2 sm:py-3 text-sm sm:text-base"
           />
         </div>
         <Button
           onClick={handleUrlSubmit}
           disabled={!inputUrl || processing}
+          className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base"
         >
           Process URL
         </Button>
       </div>
 
       {uploadedFile && (
-        <div className="p-4 bg-gray-50 rounded-lg">
-          <div className="flex items-center justify-between">
+        <div className="p-4 sm:p-6 bg-gray-50 rounded-lg">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-3 sm:space-y-0">
             <div className="flex items-center space-x-3">
-              {uploadedFile.type.startsWith('audio/') && <Mic className="w-4 h-4 text-blue-500" />}
-              {uploadedFile.type.startsWith('image/') && <Image className="w-4 h-4 text-green-500" />}
-              {uploadedFile.type === 'application/pdf' && <FileText className="w-4 h-4 text-purple-500" />}
-              <span className="text-sm font-medium">{uploadedFile.name}</span>
+              {uploadedFile.type.startsWith('audio/') && <Mic className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />}
+              {uploadedFile.type.startsWith('image/') && <Image className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />}
+              {uploadedFile.type === 'application/pdf' && <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 flex-shrink-0" />}
+              <span className="text-sm sm:text-base font-medium break-all">{uploadedFile.name}</span>
             </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setUploadedFile(null)}
+              className="self-end sm:self-auto"
             >
               Remove
             </Button>
