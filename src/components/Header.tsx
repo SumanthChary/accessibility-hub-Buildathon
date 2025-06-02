@@ -1,173 +1,211 @@
 
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/use-auth';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, User, CreditCard, FileText, LogOut } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Menu, X, Sparkles } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 
 export const Header = () => {
-  const { user, signIn, signOut } = useAuth();
-  const navigate = useNavigate();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
-  const handleSignIn = (provider: 'google' | 'github') => {
-    signIn(provider).catch(console.error);
+  const scrollToSection = (sectionId: string) => {
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+    setIsMenuOpen(false);
   };
 
-  const navigation = [
-    { name: 'Home', href: '/' },
-    { name: 'Features', href: '/#features' },
-    { name: 'Pricing', href: '/#pricing' },
-    { name: 'About', href: '/#about' },
-  ];
+  const handleSignOut = async () => {
+    await signOut();
+    setIsMenuOpen(false);
+  };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
-      <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Logo */}
-        <Link to="/" className="flex items-center space-x-2">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-sm">A</span>
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <div className="flex items-center space-x-2">
+            <Sparkles className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
+            <span className="text-lg sm:text-xl font-bold text-gray-900">AccessifyAI</span>
           </div>
-          <span className="hidden font-bold text-xl text-gray-900 sm:inline-block">
-            AccessibilityHub
-          </span>
-        </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8">
-          {navigation.map((item) => (
-            <Link
-              key={item.name}
-              to={item.href}
-              className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors relative group"
-            >
-              {item.name}
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
-            </Link>
-          ))}
-        </nav>
-
-        {/* User Menu / Auth */}
-        <div className="flex items-center space-x-4">
-          {user ? (
-            <div className="flex items-center space-x-3">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                    <Avatar className="h-9 w-9 ring-2 ring-blue-100">
-                      <AvatarImage src={user.user_metadata?.avatar_url} alt={user.user_metadata?.full_name} />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
-                        {user.user_metadata?.full_name?.[0] ?? user.email?.[0]?.toUpperCase() ?? 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuItem className="flex-col items-start">
-                    <div className="text-sm font-medium">{user.user_metadata?.full_name || 'User'}</div>
-                    <div className="text-xs text-gray-500">{user.email}</div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/profile')}>
-                    <User className="mr-2 h-4 w-4" />
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/results')}>
-                    <FileText className="mr-2 h-4 w-4" />
-                    Results
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/payments')}>
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Payments
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => signOut()}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          ) : (
-            <div className="hidden sm:flex items-center space-x-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/auth')}
-                className="hover:bg-blue-50 hover:text-blue-600"
-              >
-                Sign in
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => navigate('/auth')}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg"
-              >
-                Get Started
-              </Button>
-            </div>
-          )}
-
-          {/* Mobile menu button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
-        </div>
-      </div>
-
-      {/* Mobile Navigation */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden border-t bg-white shadow-lg">
-          <div className="px-4 py-3 space-y-3">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className="block text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors py-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {item.name}
-              </Link>
-            ))}
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
             {!user && (
-              <div className="pt-3 border-t space-y-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full justify-start"
-                  onClick={() => {
-                    navigate('/auth');
-                    setIsMobileMenuOpen(false);
-                  }}
+              <>
+                <button 
+                  onClick={() => scrollToSection('features')} 
+                  className="text-gray-600 hover:text-gray-900 transition-colors text-sm lg:text-base"
                 >
-                  Sign in
+                  Features
+                </button>
+                <button 
+                  onClick={() => scrollToSection('pricing')} 
+                  className="text-gray-600 hover:text-gray-900 transition-colors text-sm lg:text-base"
+                >
+                  Pricing
+                </button>
+                <button 
+                  onClick={() => scrollToSection('demo-section')} 
+                  className="text-gray-600 hover:text-gray-900 transition-colors text-sm lg:text-base"
+                >
+                  Demo
+                </button>
+              </>
+            )}
+          </nav>
+
+          {/* Auth Buttons - Desktop */}
+          <div className="hidden md:flex items-center space-x-3 lg:space-x-4">
+            {user ? (
+              <>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => window.location.href = '/profile'}
+                  className="text-sm lg:text-base"
+                >
+                  Profile
                 </Button>
-                <Button
-                  size="sm"
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600"
-                  onClick={() => {
-                    navigate('/auth');
-                    setIsMobileMenuOpen(false);
-                  }}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => window.location.href = '/payments'}
+                  className="text-sm lg:text-base"
+                >
+                  Billing
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleSignOut}
+                  className="text-sm lg:text-base"
+                >
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => window.location.href = '/auth'}
+                  className="text-sm lg:text-base"
+                >
+                  Sign In
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={() => window.location.href = '/auth'}
+                  className="bg-blue-600 hover:bg-blue-700 text-sm lg:text-base"
                 >
                   Get Started
                 </Button>
-              </div>
+              </>
             )}
           </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden p-2"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? (
+              <X className="h-6 w-6 text-gray-600" />
+            ) : (
+              <Menu className="h-6 w-6 text-gray-600" />
+            )}
+          </button>
         </div>
-      )}
+
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 py-4">
+            <div className="flex flex-col space-y-4">
+              {!user && (
+                <>
+                  <button 
+                    onClick={() => scrollToSection('features')} 
+                    className="text-left text-gray-600 hover:text-gray-900 transition-colors py-2"
+                  >
+                    Features
+                  </button>
+                  <button 
+                    onClick={() => scrollToSection('pricing')} 
+                    className="text-left text-gray-600 hover:text-gray-900 transition-colors py-2"
+                  >
+                    Pricing
+                  </button>
+                  <button 
+                    onClick={() => scrollToSection('demo-section')} 
+                    className="text-left text-gray-600 hover:text-gray-900 transition-colors py-2"
+                  >
+                    Demo
+                  </button>
+                </>
+              )}
+              
+              {user ? (
+                <>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => {
+                      window.location.href = '/profile';
+                      setIsMenuOpen(false);
+                    }}
+                    className="justify-start"
+                  >
+                    Profile
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => {
+                      window.location.href = '/payments';
+                      setIsMenuOpen(false);
+                    }}
+                    className="justify-start"
+                  >
+                    Billing
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleSignOut}
+                    className="justify-start"
+                  >
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => {
+                      window.location.href = '/auth';
+                      setIsMenuOpen(false);
+                    }}
+                    className="justify-start"
+                  >
+                    Sign In
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    onClick={() => {
+                      window.location.href = '/auth';
+                      setIsMenuOpen(false);
+                    }}
+                    className="justify-start bg-blue-600 hover:bg-blue-700"
+                  >
+                    Get Started
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </header>
   );
 };

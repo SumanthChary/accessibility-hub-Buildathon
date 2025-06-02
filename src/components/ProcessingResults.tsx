@@ -13,12 +13,13 @@ import {
   Volume2, 
   Clock,
   AlertCircle,
-  Loader2 
+  Loader2,
+  Link as LinkIcon
 } from 'lucide-react';
 
 interface ProcessingResult {
   id: string;
-  type: 'audio' | 'image' | 'pdf';
+  type: 'audio' | 'image' | 'pdf' | 'url';
   fileName: string;
   status: 'processing' | 'completed' | 'failed';
   progress: number;
@@ -31,40 +32,48 @@ interface ProcessingResult {
 
 interface ProcessingResultsProps {
   file: File | null;
-  features: Record<string, boolean>;
+  url: string;
+  isProcessing: boolean;
 }
 
-export const ProcessingResults = ({ file, features }: ProcessingResultsProps) => {
+export const ProcessingResults = ({ file, url, isProcessing }: ProcessingResultsProps) => {
   const [results, setResults] = useState<ProcessingResult[]>([]);
 
   useEffect(() => {
-    if (file) {
-      const fileType = getFileType(file);
+    if (file || url) {
+      const fileType = file ? getFileType(file) : 'url';
+      const fileName = file ? file.name : extractDomainFromUrl(url);
+      
       const newResult: ProcessingResult = {
         id: Date.now().toString(),
         type: fileType,
-        fileName: file.name,
+        fileName: fileName,
         status: 'processing',
         progress: 0,
       };
 
       setResults([newResult]);
-      simulateProcessing(newResult.id, fileType, features);
+      simulateProcessing(newResult.id, fileType);
     }
-  }, [file, features]);
+  }, [file, url]);
+
+  const extractDomainFromUrl = (url: string): string => {
+    try {
+      const domain = new URL(url).hostname;
+      return domain.replace('www.', '');
+    } catch {
+      return 'URL Content';
+    }
+  };
 
   const getFileType = (file: File): 'audio' | 'image' | 'pdf' => {
     if (file.type.startsWith('audio/')) return 'audio';
     if (file.type.startsWith('image/')) return 'image';
     if (file.type === 'application/pdf') return 'pdf';
-    return 'pdf'; // default
+    return 'pdf';
   };
 
-  const simulateProcessing = async (
-    id: string, 
-    type: 'audio' | 'image' | 'pdf', 
-    enabledFeatures: Record<string, boolean>
-  ) => {
+  const simulateProcessing = async (id: string, type: 'audio' | 'image' | 'pdf' | 'url') => {
     const intervals = [20, 40, 60, 80, 100];
     
     for (const progress of intervals) {
@@ -77,8 +86,7 @@ export const ProcessingResults = ({ file, features }: ProcessingResultsProps) =>
       ));
     }
 
-    // Complete processing
-    const accessibilityFeatures = getAccessibilityFeatures(type, enabledFeatures);
+    const accessibilityFeatures = getAccessibilityFeatures(type);
     
     setResults(prev => prev.map(result => 
       result.id === id 
@@ -96,10 +104,7 @@ export const ProcessingResults = ({ file, features }: ProcessingResultsProps) =>
     ));
   };
 
-  const getAccessibilityFeatures = (
-    type: 'audio' | 'image' | 'pdf', 
-    features: Record<string, boolean>
-  ): string[] => {
+  const getAccessibilityFeatures = (type: 'audio' | 'image' | 'pdf' | 'url'): string[] => {
     const baseFeatures = {
       audio: [
         'Automatic transcription generated',
@@ -118,17 +123,17 @@ export const ProcessingResults = ({ file, features }: ProcessingResultsProps) =>
         'Structured heading hierarchy',
         'Alt text for embedded images',
         'Keyboard navigation support'
+      ],
+      url: [
+        'Accessibility audit completed',
+        'WCAG compliance check',
+        'Screen reader optimization',
+        'Keyboard navigation improvements',
+        'Color contrast enhancements'
       ]
     };
 
-    const additionalFeatures = [];
-    if (features.captions) additionalFeatures.push('Enhanced captions');
-    if (features.signLanguage) additionalFeatures.push('Sign language interpretation');
-    if (features.highContrast) additionalFeatures.push('High contrast mode');
-    if (features.textToSpeech) additionalFeatures.push('Advanced text-to-speech');
-    if (features.plainLanguage) additionalFeatures.push('Plain language summary');
-
-    return [...baseFeatures[type], ...additionalFeatures];
+    return baseFeatures[type];
   };
 
   const getTypeIcon = (type: string) => {
@@ -139,12 +144,14 @@ export const ProcessingResults = ({ file, features }: ProcessingResultsProps) =>
         return <Image className="h-5 w-5 text-green-600" />;
       case 'pdf':
         return <FileText className="h-5 w-5 text-red-600" />;
+      case 'url':
+        return <LinkIcon className="h-5 w-5 text-purple-600" />;
       default:
         return <FileText className="h-5 w-5 text-gray-600" />;
     }
   };
 
-  const getStatusIcon = (status: string, progress: number) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case 'processing':
         return <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />;
@@ -162,14 +169,14 @@ export const ProcessingResults = ({ file, features }: ProcessingResultsProps) =>
   }
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="space-y-4 sm:space-y-6 w-full">
       <div className="text-center">
         <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Processing Results</h3>
         <p className="text-gray-600 text-sm sm:text-base">Real-time accessibility transformation progress</p>
       </div>
 
       {results.map((result) => (
-        <Card key={result.id} className="border-l-4 border-l-blue-600 w-full">
+        <Card key={result.id} className="border-l-4 border-l-blue-600 w-full shadow-lg">
           <CardHeader className="pb-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center space-x-3 min-w-0 flex-1">
@@ -187,22 +194,20 @@ export const ProcessingResults = ({ file, features }: ProcessingResultsProps) =>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                {getStatusIcon(result.status, result.progress)}
+                {getStatusIcon(result.status)}
               </div>
             </div>
           </CardHeader>
           
           <CardContent className="space-y-4">
-            {/* Progress Bar */}
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Progress</span>
                 <span>{result.progress}%</span>
               </div>
-              <Progress value={result.progress} className="h-2" />
+              <Progress value={result.progress} className="h-3" />
             </div>
 
-            {/* Results */}
             {result.status === 'completed' && result.result && (
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row gap-2">
