@@ -33,7 +33,7 @@ body {
   flex-direction: column;
 }
 
-/* Container styles - consistent max-width */
+/* Container styles - ultra responsive */
 .container {
   width: 100%;
   max-width: 1280px;
@@ -56,23 +56,90 @@ body {
   }
 }
 
-/* Remove any unwanted gaps at edges */
-section, main, header, footer {
-  width: 100%;
-}
-
-/* Typography improvements */
+/* Ultra responsive typography */
 h1, h2, h3, h4, h5, h6 {
   line-height: 1.2;
   font-weight: 700;
   letter-spacing: -0.025em;
 }
 
+/* Mobile-first responsive text */
+h1 {
+  font-size: 1.875rem; /* 30px */
+}
+
+h2 {
+  font-size: 1.5rem; /* 24px */
+}
+
+h3 {
+  font-size: 1.25rem; /* 20px */
+}
+
+@media (min-width: 640px) {
+  h1 {
+    font-size: 2.25rem; /* 36px */
+  }
+  
+  h2 {
+    font-size: 1.875rem; /* 30px */
+  }
+  
+  h3 {
+    font-size: 1.5rem; /* 24px */
+  }
+}
+
+@media (min-width: 768px) {
+  h1 {
+    font-size: 3rem; /* 48px */
+  }
+  
+  h2 {
+    font-size: 2.25rem; /* 36px */
+  }
+  
+  h3 {
+    font-size: 1.875rem; /* 30px */
+  }
+}
+
+@media (min-width: 1024px) {
+  h1 {
+    font-size: 3.75rem; /* 60px */
+  }
+  
+  h2 {
+    font-size: 3rem; /* 48px */
+  }
+  
+  h3 {
+    font-size: 2.25rem; /* 36px */
+  }
+}
+
 p {
   line-height: 1.6;
 }
 
-/* Button size consistency */
+/* Responsive spacing utilities */
+.space-y-2 > * + * {
+  margin-top: 0.5rem;
+}
+
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
+.space-y-6 > * + * {
+  margin-top: 1.5rem;
+}
+
+.space-y-8 > * + * {
+  margin-top: 2rem;
+}
+
+/* Button responsive sizing */
 .btn-sm {
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
@@ -88,10 +155,86 @@ p {
   font-size: 1.125rem;
 }
 
-/* Ensure images don't overflow */
+@media (max-width: 640px) {
+  .btn-lg {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+/* Ensure images are always responsive */
 img {
   max-width: 100%;
   height: auto;
+}
+
+/* Ultra responsive grid layouts */
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .grid {
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .grid {
+    gap: 2rem;
+  }
+}
+
+/* Card responsiveness */
+.card {
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Form improvements */
+form {
+  width: 100%;
+}
+
+input, textarea, select {
+  width: 100%;
+  font-size: 16px; /* Prevents zoom on iOS */
+}
+
+@media (min-width: 640px) {
+  input, textarea, select {
+    font-size: 14px;
+  }
+}
+
+/* Navigation responsive */
+nav {
+  width: 100%;
+}
+
+/* Remove gaps between sections */
+section + section {
+  margin-top: 0;
+}
+
+/* Ensure full width coverage */
+body, html {
+  overflow-x: hidden;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus states for accessibility */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
 }
 
 /* Animation utilities */
@@ -148,68 +291,28 @@ img {
   animation-delay: 400ms;
 }
 
-.animation-delay-2000 {
-  animation-delay: 2s;
+/* Responsive utilities */
+@media (max-width: 639px) {
+  .hidden-mobile {
+    display: none !important;
+  }
 }
 
-.animation-delay-4000 {
-  animation-delay: 4s;
+@media (min-width: 640px) {
+  .show-mobile-only {
+    display: none !important;
+  }
 }
 
-/* Form improvements */
-form {
-  width: 100%;
-}
-
-/* Remove gaps between sections */
-section + section {
-  margin-top: 0;
-}
-
-/* Ensure full width coverage */
-body, html {
-  overflow-x: hidden;
-}
-
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Focus states for accessibility */
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid #2563eb;
-  outline-offset: 2px;
-}
-
-/* Responsive text sizes */
+/* Touch target improvements for mobile */
 @media (max-width: 640px) {
-  h1 {
-    font-size: 2rem;
-  }
-  
-  h2 {
-    font-size: 1.75rem;
-  }
-  
-  h3 {
-    font-size: 1.5rem;
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
   }
 }
 
-@media (min-width: 641px) and (max-width: 1024px) {
-  h1 {
-    font-size: 2.5rem;
-  }
-  
-  h2 {
-    font-size: 2rem;
-  }
-  
-  h3 {
-    font-size: 1.75rem;
-  }
+/* Prevent horizontal scroll on mobile */
+* {
+  max-width: 100%;
 }

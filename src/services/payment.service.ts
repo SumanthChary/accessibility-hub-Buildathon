@@ -36,10 +36,12 @@ export const createCheckoutSession = async (planId: string, isSubscription: bool
 
 export const createOneTimePayment = async (amount: number, description: string) => {
   try {
-    const { data, error } = await supabase.functions.invoke('create-one-time-payment', {
+    const { data, error } = await supabase.functions.invoke('create-checkout-session', {
       body: {
+        planId: 'one_time',
         amount: amount * 100, // Convert to cents
         description,
+        isSubscription: false,
         successUrl: `${window.location.origin}/payments?success=true`,
         cancelUrl: `${window.location.origin}/payments?canceled=true`,
       },

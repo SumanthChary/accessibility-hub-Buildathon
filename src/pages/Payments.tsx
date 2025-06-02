@@ -146,8 +146,8 @@ export const Payments = () => {
             Back to Home
           </Button>
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Choose Your Plan</h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Choose Your Plan</h1>
+            <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
               Select the perfect plan for your accessibility transformation needs. 
               Upgrade or downgrade anytime with no long-term commitments.
             </p>
@@ -157,8 +157,8 @@ export const Payments = () => {
         {/* Current Plan Status */}
         {user && (
           <Card className="mb-8 border-blue-200 bg-blue-50">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
                     <CreditCard className="h-5 w-5 text-white" />
@@ -207,7 +207,7 @@ export const Payments = () => {
                     <Icon className="h-6 w-6 text-gray-700" />
                   </div>
                   <CardTitle className="text-xl">{plan.name}</CardTitle>
-                  <div className="text-3xl font-bold text-gray-900">
+                  <div className="text-2xl sm:text-3xl font-bold text-gray-900">
                     {plan.price}
                     <span className="text-sm font-normal text-gray-500">/{plan.period}</span>
                   </div>
@@ -217,9 +217,9 @@ export const Payments = () => {
                 <CardContent className="pt-2">
                   <ul className="space-y-3 mb-6">
                     {plan.features.map((feature, index) => (
-                      <li key={index} className="flex items-center text-sm">
-                        <Check className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
-                        {feature}
+                      <li key={index} className="flex items-start text-sm">
+                        <Check className="h-4 w-4 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
+                        <span>{feature}</span>
                       </li>
                     ))}
                   </ul>

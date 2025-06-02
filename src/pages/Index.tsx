@@ -1,89 +1,59 @@
 
-import { useState } from 'react';
-import { Header } from '@/components/Header';
+import { useEffect } from 'react';
+import { useAuth } from '@/hooks/use-auth';
 import { HeroSection } from '@/components/HeroSection';
-import { Stats } from '@/components/Stats';
-import { UploadForm } from '@/components/UploadForm';
-import { FeatureToggles } from '@/components/FeatureToggles';
-import { PreviewSection } from '@/components/PreviewSection';
 import { FeaturesShowcase } from '@/components/FeaturesShowcase';
-import { PricingPlans } from '@/components/PricingPlans';
+import { Stats } from '@/components/Stats';
 import { Testimonials } from '@/components/Testimonials';
+import { PricingPlans } from '@/components/PricingPlans';
 import { FAQ } from '@/components/FAQ';
 import { CTA } from '@/components/CTA';
+import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { Dashboard } from '@/components/Dashboard';
+import { UploadForm } from '@/components/UploadForm';
 
 const Index = () => {
-  const [inputUrl, setInputUrl] = useState('');
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [features, setFeatures] = useState({
-    captions: true,
-    signLanguage: false,
-    highContrast: false,
-    textToSpeech: true,
-    plainLanguage: true
-  });
-
-  const hasContent = Boolean(uploadedFile || inputUrl);
-
-  const handleFeatureToggle = (feature: string) => {
-    setFeatures(prev => ({
-      ...prev,
-      [feature]: !prev[feature as keyof typeof prev]
-    }));
-  };
-
-  const handleUrlSubmit = async (url: string) => {
-    if (!url) return;
-    setInputUrl(url);
-  };
+  const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen w-full">
       <Header />
-      <main className="flex-grow">
-        <HeroSection />
-        <Stats />
-        <section id="demo-section" className="py-16 bg-gray-50">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto space-y-8">
-              <div className="text-center">
-                <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-4">
-                  Try it Yourself
+      
+      {user ? (
+        // Authenticated user sees dashboard and upload section
+        <main className="pt-16">
+          <Dashboard />
+          <section id="demo-section" className="py-12 bg-gray-50">
+            <div className="container mx-auto px-4 max-w-4xl">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                  Transform Your Content
                 </h2>
-                <p className="text-lg text-gray-600 mb-8">
-                  Upload a file or paste a URL to see how we can make your content accessible.
+                <p className="text-xl text-gray-600">
+                  Upload files to make them accessible with AI-powered transformations
                 </p>
               </div>
-
-              <UploadForm
-                inputUrl={inputUrl}
-                setInputUrl={setInputUrl}
-                uploadedFile={uploadedFile}
-                setUploadedFile={setUploadedFile}
-                onUrlSubmit={handleUrlSubmit}
-              />
-
-              <FeatureToggles features={features} onToggle={handleFeatureToggle} />
-              
-              {hasContent && (
-                <PreviewSection 
-                  features={features} 
-                  hasContent={hasContent}
-                  file={uploadedFile}
-                  url={inputUrl}
-                />
-              )}
+              <UploadForm />
             </div>
-          </div>
-        </section>
-
-        <FeaturesShowcase />
-        <PricingPlans />
-        <Testimonials />
-        <FAQ />
-        <CTA />
-      </main>
+          </section>
+        </main>
+      ) : (
+        // Non-authenticated users see the marketing landing page
+        <main>
+          <HeroSection />
+          <FeaturesShowcase />
+          <Stats />
+          <section id="demo-section">
+            <UploadForm />
+          </section>
+          <Testimonials />
+          <PricingPlans />
+          <FAQ />
+          <CTA />
+        </main>
+      )}
+      
       <Footer />
     </div>
   );

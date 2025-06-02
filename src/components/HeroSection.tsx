@@ -53,10 +53,10 @@ export const HeroSection = () => {
               variant="outline"
               className="px-8 py-3 text-lg rounded-xl border-2 hover:bg-gray-50"
               onClick={() => {
-                document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
-              View Features
+              View Pricing
             </Button>
           </div>
 

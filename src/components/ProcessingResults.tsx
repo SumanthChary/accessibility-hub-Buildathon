@@ -68,7 +68,7 @@ export const ProcessingResults = ({ file, features }: ProcessingResultsProps) =>
     const intervals = [20, 40, 60, 80, 100];
     
     for (const progress of intervals) {
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise(resolve => setTimeout(resolve, 600));
       
       setResults(prev => prev.map(result => 
         result.id === id 
@@ -162,23 +162,23 @@ export const ProcessingResults = ({ file, features }: ProcessingResultsProps) =>
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       <div className="text-center">
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">Processing Results</h3>
-        <p className="text-gray-600">Real-time accessibility transformation progress</p>
+        <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Processing Results</h3>
+        <p className="text-gray-600 text-sm sm:text-base">Real-time accessibility transformation progress</p>
       </div>
 
       {results.map((result) => (
-        <Card key={result.id} className="border-l-4 border-l-blue-600">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
+        <Card key={result.id} className="border-l-4 border-l-blue-600 w-full">
+          <CardHeader className="pb-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center space-x-3 min-w-0 flex-1">
                 {getTypeIcon(result.type)}
-                <div>
-                  <CardTitle className="text-lg">{result.fileName}</CardTitle>
-                  <CardDescription className="flex items-center space-x-2 mt-1">
-                    <Badge variant="outline">{result.type.toUpperCase()}</Badge>
-                    <span className="text-sm text-gray-500">
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="text-base sm:text-lg truncate">{result.fileName}</CardTitle>
+                  <CardDescription className="flex flex-wrap items-center gap-2 mt-1">
+                    <Badge variant="outline" className="text-xs">{result.type.toUpperCase()}</Badge>
+                    <span className="text-xs sm:text-sm text-gray-500">
                       {result.status === 'processing' && 'Processing...'}
                       {result.status === 'completed' && 'Completed'}
                       {result.status === 'failed' && 'Failed'}
@@ -205,12 +205,12 @@ export const ProcessingResults = ({ file, features }: ProcessingResultsProps) =>
             {/* Results */}
             {result.status === 'completed' && result.result && (
               <div className="space-y-4">
-                <div className="flex space-x-2">
-                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
                     <Eye className="mr-2 h-4 w-4" />
                     Preview
                   </Button>
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outline" className="w-full sm:w-auto">
                     <Download className="mr-2 h-4 w-4" />
                     Download
                   </Button>
@@ -218,11 +218,11 @@ export const ProcessingResults = ({ file, features }: ProcessingResultsProps) =>
 
                 <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                   <h4 className="font-semibold text-green-800 mb-3">Accessibility Features Added:</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 gap-2">
                     {result.result.accessibilityFeatures.map((feature, index) => (
-                      <div key={index} className="flex items-center text-sm text-green-700">
-                        <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0" />
-                        {feature}
+                      <div key={index} className="flex items-start text-sm text-green-700">
+                        <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0 mt-0.5" />
+                        <span>{feature}</span>
                       </div>
                     ))}
                   </div>
