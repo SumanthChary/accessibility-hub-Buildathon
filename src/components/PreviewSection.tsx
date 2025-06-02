@@ -20,15 +20,17 @@ export const PreviewSection = ({ features, hasContent, file, url }: PreviewSecti
       {file && (
         <ProcessingResults 
           file={file} 
-          features={features}
+          url=""
+          isProcessing={false}
         />
       )}
       
       {url && !file && (
-        <div className="text-center p-8 bg-gray-50 rounded-lg">
-          <p className="text-gray-600 mb-4">Processing URL: {url}</p>
-          <p className="text-sm text-gray-500">URL processing will be implemented in the next update</p>
-        </div>
+        <ProcessingResults 
+          file={null} 
+          url={url}
+          isProcessing={false}
+        />
       )}
     </div>
   );
