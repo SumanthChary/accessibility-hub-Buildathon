@@ -41,7 +41,7 @@ export const getProfile = async (userId: string): Promise<Profile | null> => {
       .single();
 
     if (error) throw error;
-    return data;
+    return data as Profile;
   } catch (error) {
     console.error('Error fetching profile:', error);
     return null;

@@ -22,7 +22,7 @@ export const fetchUserProfile = async (userId: string) => {
   if (error && error.code !== 'PGRST116') {
     console.warn('Profile fetch error:', error);
   }
-  return data;
+  return data as Profile | null;
 };
 
 export const fetchUserQuota = async (userId: string) => {

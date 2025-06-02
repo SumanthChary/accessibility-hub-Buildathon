@@ -7,7 +7,7 @@ import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Download, Eye, FileText, Image, Volume2, Clock, FileSize, User } from 'lucide-react';
+import { ArrowLeft, Download, Eye, FileText, Image, Volume2, Clock, HardDrive, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ProcessingHistoryItem {
@@ -45,7 +45,10 @@ export const Results = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setHistory(data || []);
+      setHistory((data || []).map(item => ({
+        ...item,
+        type: item.type as 'audio' | 'image' | 'pdf'
+      })));
     } catch (error) {
       console.error('Error fetching processing history:', error);
     } finally {
@@ -171,7 +174,7 @@ export const Results = () => {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <FileSize className="h-4 w-4" />
+                      <HardDrive className="h-4 w-4" />
                       <span>Size: {formatFileSize(item.file_size)}</span>
                     </div>
                     <div className="flex items-center space-x-2 text-sm text-gray-600">
