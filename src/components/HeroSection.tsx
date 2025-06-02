@@ -1,6 +1,6 @@
 
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Sparkles, Heart, Globe, Shield, Zap } from 'lucide-react';
+import { ArrowRight, Sparkles, Globe, Shield, Zap } from 'lucide-react';
 
 export const HeroSection = () => {
   return (
@@ -17,22 +17,22 @@ export const HeroSection = () => {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium">
             <Sparkles className="h-4 w-4" />
-            AI-Powered Accessibility Platform
+            Enterprise AI-Powered Accessibility Platform
           </div>
 
           {/* Main heading */}
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 leading-tight">
-            Make Your Content{' '}
+            Transform Content into{' '}
             <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
-              Accessible
+              Accessible Formats
             </span>{' '}
-            for Everyone
+            Instantly
           </h1>
 
           {/* Subheading */}
           <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Transform audio, images, and PDFs into accessible formats instantly. 
-            Powered by cutting-edge AI to ensure everyone can access your content.
+            Professional AI-powered platform that converts audio, images, and PDFs into 
+            accessible formats. Ensure compliance and reach wider audiences effortlessly.
           </p>
 
           {/* CTA Buttons */}
@@ -45,7 +45,7 @@ export const HeroSection = () => {
               }}
             >
               <Sparkles className="mr-2 h-5 w-5" />
-              Try it Free
+              Start Free Trial
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             <Button
@@ -56,29 +56,25 @@ export const HeroSection = () => {
                 document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
-              Learn More
+              View Features
             </Button>
           </div>
 
           {/* Trust indicators */}
           <div className="pt-8 sm:pt-12">
-            <p className="text-sm text-gray-500 mb-6">Trusted by accessibility advocates worldwide</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 items-center justify-center">
+            <p className="text-sm text-gray-500 mb-6">Trusted by accessibility professionals worldwide</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 items-center justify-center">
               <div className="flex items-center justify-center space-x-2 text-gray-600">
                 <Globe className="w-5 h-5" />
-                <span className="text-sm font-medium">Global</span>
+                <span className="text-sm font-medium">Global Standards</span>
               </div>
               <div className="flex items-center justify-center space-x-2 text-gray-600">
                 <Shield className="w-5 h-5" />
-                <span className="text-sm font-medium">Secure</span>
+                <span className="text-sm font-medium">Enterprise Security</span>
               </div>
               <div className="flex items-center justify-center space-x-2 text-gray-600">
                 <Zap className="w-5 h-5" />
-                <span className="text-sm font-medium">Fast</span>
-              </div>
-              <div className="flex items-center justify-center space-x-2 text-gray-600">
-                <Heart className="w-5 h-5" />
-                <span className="text-sm font-medium">Inclusive</span>
+                <span className="text-sm font-medium">Lightning Fast</span>
               </div>
               <div className="flex items-center justify-center space-x-2 text-gray-600">
                 <Sparkles className="w-5 h-5" />
@@ -86,7 +82,7 @@ export const HeroSection = () => {
               </div>
               <div className="flex items-center justify-center space-x-2 text-gray-600">
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                <span className="text-sm font-medium">99.2% Uptime</span>
+                <span className="text-sm font-medium">99.9% Uptime</span>
               </div>
             </div>
           </div>

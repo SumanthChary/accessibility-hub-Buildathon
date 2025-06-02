@@ -1,13 +1,14 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { createCheckoutSession } from '@/services/payment.service';
 import { 
   CreditCard, 
   ArrowLeft, 
@@ -24,7 +25,24 @@ export const Payments = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Handle payment success/cancel
+    if (searchParams.get('success') === 'true') {
+      toast({
+        title: 'Payment Successful!',
+        description: 'Your subscription has been activated.',
+      });
+    } else if (searchParams.get('canceled') === 'true') {
+      toast({
+        title: 'Payment Canceled',
+        description: 'You can try again anytime.',
+        variant: 'destructive',
+      });
+    }
+  }, [searchParams, toast]);
 
   const plans = [
     {
@@ -32,12 +50,13 @@ export const Payments = () => {
       name: 'Free',
       price: '$0',
       period: 'forever',
-      description: 'Perfect for getting started',
+      description: 'Perfect for trying out our platform',
       features: [
         '5 transformations per month',
         'Basic accessibility features',
         'Email support',
-        'Community access'
+        'Community access',
+        'Standard processing speed'
       ],
       icon: Users,
       popular: false,
@@ -45,17 +64,19 @@ export const Payments = () => {
     },
     {
       id: 'pro',
-      name: 'Pro',
-      price: '$19',
+      name: 'Professional',
+      price: '$19.99',
       period: 'per month',
-      description: 'For professionals and small teams',
+      description: 'For professionals and growing businesses',
       features: [
         'Unlimited transformations',
         'Advanced AI features',
-        'Priority support',
+        'Priority support (24/7)',
         'Custom integrations',
         'Analytics dashboard',
-        'API access'
+        'API access',
+        'Priority processing queue',
+        'Advanced export formats'
       ],
       icon: Zap,
       popular: true,
@@ -64,16 +85,18 @@ export const Payments = () => {
     {
       id: 'enterprise',
       name: 'Enterprise',
-      price: '$99',
+      price: '$99.99',
       period: 'per month',
-      description: 'For large organizations',
+      description: 'For large organizations with custom needs',
       features: [
-        'Everything in Pro',
+        'Everything in Professional',
         'White-label solution',
-        'Dedicated support',
-        'Custom training',
-        'SLA guarantee',
-        'On-premise deployment'
+        'Dedicated account manager',
+        'Custom training & onboarding',
+        '99.9% SLA guarantee',
+        'On-premise deployment option',
+        'Advanced security & compliance',
+        'Custom integrations & workflows'
       ],
       icon: Crown,
       popular: false,
@@ -87,19 +110,21 @@ export const Payments = () => {
       return;
     }
 
+    if (planId === 'free') {
+      toast({
+        title: 'Already on Free Plan',
+        description: 'You are currently on the free plan.',
+      });
+      return;
+    }
+
     setLoading(planId);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: 'Subscription Updated',
-        description: `Successfully subscribed to ${plans.find(p => p.id === planId)?.name} plan!`,
-      });
+      await createCheckoutSession(planId, true);
     } catch (error) {
       toast({
-        title: 'Subscription Failed',
-        description: 'Failed to update subscription. Please try again.',
+        title: 'Payment Error',
+        description: 'Failed to start payment process. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -123,7 +148,8 @@ export const Payments = () => {
           <div className="text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Choose Your Plan</h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Select the perfect plan for your accessibility needs. Upgrade or downgrade anytime.
+              Select the perfect plan for your accessibility transformation needs. 
+              Upgrade or downgrade anytime with no long-term commitments.
             </p>
           </div>
         </div>
@@ -155,7 +181,9 @@ export const Payments = () => {
             return (
               <Card 
                 key={plan.id} 
-                className={`relative ${plan.popular ? 'border-blue-500 shadow-lg scale-105' : ''} ${plan.current ? 'border-green-500' : ''}`}
+                className={`relative transition-all duration-200 ${
+                  plan.popular ? 'border-blue-500 shadow-lg scale-105 z-10' : ''
+                } ${plan.current ? 'border-green-500' : ''}`}
               >
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
@@ -197,7 +225,13 @@ export const Payments = () => {
                   </ul>
                   
                   <Button
-                    className={`w-full ${plan.current ? 'bg-gray-400' : plan.popular ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+                    className={`w-full ${
+                      plan.current 
+                        ? 'bg-gray-400' 
+                        : plan.popular 
+                        ? 'bg-blue-600 hover:bg-blue-700' 
+                        : ''
+                    }`}
                     variant={plan.current ? 'secondary' : plan.popular ? 'default' : 'outline'}
                     disabled={plan.current || loading === plan.id}
                     onClick={() => handleSubscribe(plan.id)}
@@ -218,15 +252,15 @@ export const Payments = () => {
           })}
         </div>
 
-        {/* Features Comparison */}
+        {/* Enterprise Features */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5" />
-              Why Choose Pro?
+              Enterprise-Grade Features
             </CardTitle>
             <CardDescription>
-              Unlock the full potential of accessibility transformation
+              Designed for organizations that need robust accessibility solutions
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -234,17 +268,17 @@ export const Payments = () => {
               <div className="text-center">
                 <Shield className="h-8 w-8 text-blue-600 mx-auto mb-3" />
                 <h3 className="font-semibold mb-2">Enterprise Security</h3>
-                <p className="text-sm text-gray-600">SOC 2 compliant with enterprise-grade security</p>
+                <p className="text-sm text-gray-600">SOC 2 Type II compliant with advanced encryption</p>
               </div>
               <div className="text-center">
                 <Zap className="h-8 w-8 text-green-600 mx-auto mb-3" />
-                <h3 className="font-semibold mb-2">Lightning Fast</h3>
-                <p className="text-sm text-gray-600">Process files up to 10x faster with priority queues</p>
+                <h3 className="font-semibold mb-2">Lightning Fast Processing</h3>
+                <p className="text-sm text-gray-600">Priority queues with 10x faster processing speeds</p>
               </div>
               <div className="text-center">
                 <Users className="h-8 w-8 text-purple-600 mx-auto mb-3" />
-                <h3 className="font-semibold mb-2">Team Collaboration</h3>
-                <p className="text-sm text-gray-600">Share projects and collaborate with your team</p>
+                <h3 className="font-semibold mb-2">Team Management</h3>
+                <p className="text-sm text-gray-600">Advanced user management and collaboration tools</p>
               </div>
             </div>
           </CardContent>
