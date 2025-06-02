@@ -1,6 +1,9 @@
 
 import { supabase, type Profile } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
+import type { Database } from '@/integrations/supabase/types';
+
+type DatabaseProfile = Database['public']['Tables']['profiles']['Row'];
 
 export const getInitialSession = async () => {
   if (!supabase) return null;
@@ -22,7 +25,7 @@ export const fetchUserProfile = async (userId: string) => {
   if (error && error.code !== 'PGRST116') {
     console.warn('Profile fetch error:', error);
   }
-  return data as Profile | null;
+  return data as DatabaseProfile | null;
 };
 
 export const fetchUserQuota = async (userId: string) => {
@@ -60,7 +63,7 @@ export const signOutUser = async () => {
   if (error) throw error;
 };
 
-export const updateUserProfile = async (user: User, profileData: Partial<Profile>) => {
+export const updateUserProfile = async (user: User, profileData: Partial<DatabaseProfile>) => {
   if (!supabase) throw new Error('Authentication required to update profile');
   
   // Update user metadata in auth
