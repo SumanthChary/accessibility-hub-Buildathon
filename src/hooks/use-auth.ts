@@ -19,7 +19,7 @@ export function useAuth(): AuthContext {
     user: null,
     profile: null,
     quota: null,
-    loading: false,
+    loading: true,
     error: null
   });
 
@@ -38,8 +38,6 @@ export function useAuth(): AuthContext {
           });
           return;
         }
-
-        setState(prev => ({ ...prev, loading: true }));
 
         const session = await getInitialSession();
         
@@ -101,6 +99,11 @@ export function useAuth(): AuthContext {
 
           console.log('Auth state changed:', event, session?.user?.email);
 
+          if (event === 'SIGNED_IN' && session?.user) {
+            // Redirect to dashboard immediately after sign in
+            window.location.href = '/';
+          }
+
           if (session?.user) {
             try {
               const [profile, quota] = await Promise.allSettled([
@@ -153,12 +156,13 @@ export function useAuth(): AuthContext {
 
   const signIn = async (provider: 'google' | 'github') => {
     try {
-      setState(prev => ({ ...prev, error: null }));
+      setState(prev => ({ ...prev, error: null, loading: true }));
       await signInWithOAuth(provider);
     } catch (error) {
       console.error('Sign in error:', error);
       setState(prev => ({
         ...prev,
+        loading: false,
         error: error instanceof Error ? error.message : 'Failed to sign in'
       }));
     }
@@ -168,6 +172,8 @@ export function useAuth(): AuthContext {
     try {
       setState(prev => ({ ...prev, error: null }));
       await signOutUser();
+      // Redirect to home after sign out
+      window.location.href = '/';
     } catch (error) {
       console.error('Sign out error:', error);
       setState(prev => ({
@@ -191,7 +197,6 @@ export function useAuth(): AuthContext {
       
       await updateUserProfile(state.user, profileData);
 
-      // Update local state
       setState(prev => ({
         ...prev,
         user: prev.user ? {

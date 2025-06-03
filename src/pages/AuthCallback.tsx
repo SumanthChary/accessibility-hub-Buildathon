@@ -51,7 +51,7 @@ export const AuthCallback = () => {
             description: 'You have been successfully signed in.',
           });
           
-          // Force redirect to home page which will show dashboard for authenticated users
+          // Redirect to dashboard immediately
           window.location.href = '/';
         } else {
           navigate('/auth');

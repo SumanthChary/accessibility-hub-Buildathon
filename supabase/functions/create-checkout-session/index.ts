@@ -13,102 +13,82 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-    );
+  const supabaseClient = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+  );
 
-    // Get authenticated user
+  try {
     const authHeader = req.headers.get("Authorization")!;
     const token = authHeader.replace("Bearer ", "");
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
+    if (!user?.email) throw new Error("User not authenticated or email not available");
 
-    if (!user?.email) {
-      throw new Error("User not authenticated");
-    }
+    const { planId, isSubscription, successUrl, cancelUrl } = await req.json();
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2023-10-16",
     });
 
-    const { planId, isSubscription, successUrl, cancelUrl } = await req.json();
-
-    // Define pricing plans
-    const plans = {
-      free: { price: 0, name: "Free Plan" },
-      pro: { price: 1999, name: "Pro Plan" }, // $19.99
-      enterprise: { price: 9999, name: "Enterprise Plan" }, // $99.99
-    };
-
-    const selectedPlan = plans[planId as keyof typeof plans];
-    if (!selectedPlan) {
-      throw new Error("Invalid plan selected");
-    }
-
     // Check if customer exists
-    const customers = await stripe.customers.list({
-      email: user.email,
-      limit: 1,
-    });
-
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
-    } else {
-      const customer = await stripe.customers.create({
-        email: user.email,
-        metadata: {
-          supabase_user_id: user.id,
-        },
-      });
-      customerId = customer.id;
     }
+
+    // Define plan configurations
+    const planConfigs = {
+      'pro': {
+        name: 'Professional Plan',
+        price: 1999, // $19.99
+        recurring: true
+      },
+      'enterprise': {
+        name: 'Enterprise Plan', 
+        price: 9999, // $99.99
+        recurring: true
+      }
+    };
+
+    const config = planConfigs[planId as keyof typeof planConfigs];
+    if (!config) throw new Error("Invalid plan ID");
 
     const sessionConfig: any = {
       customer: customerId,
+      customer_email: customerId ? undefined : user.email,
       line_items: [
         {
           price_data: {
             currency: "usd",
-            product_data: {
-              name: selectedPlan.name,
+            product_data: { 
+              name: config.name,
+              description: `Access to ${config.name} features`
             },
-            unit_amount: selectedPlan.price,
+            unit_amount: config.price,
+            ...(config.recurring && {
+              recurring: { interval: "month" }
+            })
           },
           quantity: 1,
         },
       ],
+      mode: config.recurring ? "subscription" : "payment",
       success_url: successUrl,
       cancel_url: cancelUrl,
     };
 
-    if (isSubscription && selectedPlan.price > 0) {
-      sessionConfig.mode = "subscription";
-      sessionConfig.line_items[0].price_data.recurring = {
-        interval: "month",
-      };
-    } else {
-      sessionConfig.mode = "payment";
-    }
-
     const session = await stripe.checkout.sessions.create(sessionConfig);
 
-    return new Response(
-      JSON.stringify({ url: session.url }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      }
-    );
+    return new Response(JSON.stringify({ url: session.url }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      }
-    );
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
   }
 });
