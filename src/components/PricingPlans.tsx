@@ -2,8 +2,32 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Check, Star, Zap, Crown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/use-auth';
 
 export const PricingPlans = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const handlePlanClick = (planName: string) => {
+    if (planName === 'Free') {
+      if (!user) {
+        navigate('/auth');
+      }
+      return;
+    }
+    
+    if (planName === 'Pro') {
+      navigate('/payments');
+      return;
+    }
+    
+    if (planName === 'Enterprise') {
+      // For enterprise, you might want to navigate to a contact form
+      navigate('/payments');
+    }
+  };
+
   const plans = [
     {
       name: "Free",
@@ -64,18 +88,18 @@ export const PricingPlans = () => {
   ];
 
   return (
-    <section id="pricing" className="py-24 bg-gradient-to-br from-slate-50 to-blue-50">
-      <div className="max-w-6xl mx-auto px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl font-bold text-slate-800 mb-6">
+    <section id="pricing" className="py-16 sm:py-20 lg:py-24 bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-800 mb-4 sm:mb-6">
             Choose Your Plan
           </h2>
-          <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+          <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto">
             Scale your accessibility efforts with plans designed for every need
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
           {plans.map((plan, index) => (
             <Card 
               key={index} 
@@ -101,7 +125,7 @@ export const PricingPlans = () => {
                   {plan.name}
                 </CardTitle>
                 <div className="mt-4">
-                  <span className="text-4xl font-bold text-slate-800">{plan.price}</span>
+                  <span className="text-3xl sm:text-4xl font-bold text-slate-800">{plan.price}</span>
                   <span className="text-slate-600 ml-2">/{plan.period}</span>
                 </div>
                 <p className="text-slate-600 mt-2">{plan.description}</p>
@@ -112,7 +136,7 @@ export const PricingPlans = () => {
                   {plan.features.map((feature, featureIndex) => (
                     <li key={featureIndex} className="flex items-center">
                       <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
-                      <span className="text-slate-600">{feature}</span>
+                      <span className="text-slate-600 text-sm">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -124,6 +148,7 @@ export const PricingPlans = () => {
                       : 'bg-slate-800 hover:bg-slate-900 text-white'
                   }`}
                   size="lg"
+                  onClick={() => handlePlanClick(plan.name)}
                 >
                   {plan.buttonText}
                 </Button>
@@ -132,7 +157,7 @@ export const PricingPlans = () => {
           ))}
         </div>
 
-        <div className="text-center mt-12">
+        <div className="text-center mt-8 sm:mt-12">
           <p className="text-slate-600">
             All plans include our core accessibility features. Need something custom?{' '}
             <a href="#contact" className="text-blue-600 hover:underline font-semibold">
