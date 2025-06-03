@@ -12,13 +12,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { User, Mail, Camera, Save, ArrowLeft, TrendingUp, Calendar, FileText } from 'lucide-react';
+import { User, Mail, Camera, Save, ArrowLeft, TrendingUp, Calendar, FileText, Crown, Sparkles } from 'lucide-react';
 
 export const Profile = () => {
-  const { user, profile, quota, updateProfile } = useAuth();
+  const { user, profile, quota, updateProfile, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
     username: '',
@@ -44,7 +44,7 @@ export const Profile = () => {
     e.preventDefault();
     if (!user) return;
 
-    setLoading(true);
+    setSaving(true);
 
     try {
       await updateProfile({
@@ -64,13 +64,33 @@ export const Profile = () => {
         variant: 'destructive',
       });
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <main className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="space-y-6">
+            {/* Loading skeleton */}
+            <div className="h-8 bg-gray-200 rounded-md animate-pulse"></div>
+            <div className="h-4 bg-gray-200 rounded-md animate-pulse w-3/4"></div>
+            <div className="grid gap-6">
+              <div className="h-96 bg-gray-200 rounded-lg animate-pulse"></div>
+              <div className="h-64 bg-gray-200 rounded-lg animate-pulse"></div>
+              <div className="h-48 bg-gray-200 rounded-lg animate-pulse"></div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   if (!user) {
     return null;
@@ -84,23 +104,30 @@ export const Profile = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="mb-6">
+      <main className="container mx-auto px-4 py-8 pt-24 max-w-4xl">
+        <div className="mb-8 animate-in fade-in-50 slide-in-from-bottom-4 duration-500">
           <Button
             variant="ghost"
             onClick={() => navigate('/')}
-            className="mb-4"
+            className="mb-6 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Home
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900">Profile Settings</h1>
-          <p className="text-gray-600 mt-2">Manage your account and track your usage</p>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+              <User className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Profile Settings</h1>
+              <p className="text-gray-600">Manage your account and track your usage</p>
+            </div>
+          </div>
         </div>
 
-        <div className="grid gap-6">
+        <div className="grid gap-8">
           {/* Profile Information */}
-          <Card>
+          <Card className="animate-in fade-in-50 slide-in-from-bottom-4 duration-500 delay-100">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
@@ -113,16 +140,16 @@ export const Profile = () => {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Avatar Section */}
-                <div className="flex items-center space-x-4">
-                  <Avatar className="h-20 w-20">
+                <div className="flex items-center space-x-6">
+                  <Avatar className="h-24 w-24 ring-4 ring-blue-100">
                     <AvatarImage src={formData.avatar_url} alt={formData.full_name} />
-                    <AvatarFallback className="text-lg bg-blue-100 text-blue-600">
+                    <AvatarFallback className="text-xl bg-blue-100 text-blue-600">
                       {formData.full_name?.[0] || formData.email?.[0]?.toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <Label htmlFor="avatar_url">Profile Picture URL</Label>
-                    <div className="flex mt-1">
+                    <Label htmlFor="avatar_url" className="text-sm font-medium">Profile Picture URL</Label>
+                    <div className="flex mt-2">
                       <Input
                         id="avatar_url"
                         type="url"
@@ -131,7 +158,7 @@ export const Profile = () => {
                         onChange={(e) => handleInputChange('avatar_url', e.target.value)}
                         className="flex-1"
                       />
-                      <Button type="button" variant="outline" size="sm" className="ml-2">
+                      <Button type="button" variant="outline" size="sm" className="ml-2 hover:bg-blue-50">
                         <Camera className="h-4 w-4" />
                       </Button>
                     </div>
@@ -141,34 +168,34 @@ export const Profile = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <Label htmlFor="full_name">Full Name</Label>
+                    <Label htmlFor="full_name" className="text-sm font-medium">Full Name</Label>
                     <Input
                       id="full_name"
                       type="text"
                       placeholder="Enter your full name"
                       value={formData.full_name}
                       onChange={(e) => handleInputChange('full_name', e.target.value)}
-                      className="mt-1"
+                      className="mt-2"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="username">Username</Label>
+                    <Label htmlFor="username" className="text-sm font-medium">Username</Label>
                     <Input
                       id="username"
                       type="text"
                       placeholder="Enter your username"
                       value={formData.username}
                       onChange={(e) => handleInputChange('username', e.target.value)}
-                      className="mt-1"
+                      className="mt-2"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="email">Email Address</Label>
-                  <div className="flex items-center mt-1">
+                  <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
+                  <div className="flex items-center mt-2">
                     <Mail className="h-4 w-4 text-gray-400 mr-2" />
                     <Input
                       id="email"
@@ -183,16 +210,20 @@ export const Profile = () => {
                   </p>
                 </div>
 
-                <Button type="submit" className="w-full md:w-auto" disabled={loading}>
+                <Button 
+                  type="submit" 
+                  className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 transition-all duration-200" 
+                  disabled={saving}
+                >
                   <Save className="mr-2 h-4 w-4" />
-                  {loading ? 'Saving...' : 'Save Changes'}
+                  {saving ? 'Saving...' : 'Save Changes'}
                 </Button>
               </form>
             </CardContent>
           </Card>
 
           {/* Usage Statistics */}
-          <Card>
+          <Card className="animate-in fade-in-50 slide-in-from-bottom-4 duration-500 delay-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5" />
@@ -212,7 +243,7 @@ export const Profile = () => {
                       {quota ? 60 - quota.audio_minutes : 0} / 60 minutes used
                     </span>
                   </div>
-                  <Progress value={audioUsage} className="h-2" />
+                  <Progress value={audioUsage} className="h-3" />
                 </div>
 
                 {/* Image Processing */}
@@ -223,7 +254,7 @@ export const Profile = () => {
                       {quota ? 100 - quota.image_count : 0} / 100 images used
                     </span>
                   </div>
-                  <Progress value={imageUsage} className="h-2" />
+                  <Progress value={imageUsage} className="h-3" />
                 </div>
 
                 {/* PDF Processing */}
@@ -234,14 +265,14 @@ export const Profile = () => {
                       {quota ? 50 - quota.pdf_pages : 0} / 50 pages used
                     </span>
                   </div>
-                  <Progress value={pdfUsage} className="h-2" />
+                  <Progress value={pdfUsage} className="h-3" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Account Statistics */}
-          <Card>
+          {/* Account Overview */}
+          <Card className="animate-in fade-in-50 slide-in-from-bottom-4 duration-500 delay-300">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
@@ -252,38 +283,48 @@ export const Profile = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {profile?.subscription_tier?.toUpperCase() || 'FREE'}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
+                  <div className="flex items-center justify-center mb-3">
+                    <Crown className="h-6 w-6 text-blue-600 mr-2" />
+                    <div className="text-2xl font-bold text-blue-600">
+                      {profile?.subscription_tier?.toUpperCase() || 'FREE'}
+                    </div>
                   </div>
                   <div className="text-sm text-gray-600">Current Plan</div>
                 </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">
-                    {new Date(user.created_at || '').toLocaleDateString()}
+                <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
+                  <div className="flex items-center justify-center mb-3">
+                    <Calendar className="h-6 w-6 text-green-600 mr-2" />
+                    <div className="text-lg font-bold text-green-600">
+                      {new Date(user.created_at || '').toLocaleDateString()}
+                    </div>
                   </div>
                   <div className="text-sm text-gray-600">Member Since</div>
                 </div>
-                <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">
-                    {new Date().toLocaleDateString()}
+                <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
+                  <div className="flex items-center justify-center mb-3">
+                    <Sparkles className="h-6 w-6 text-purple-600 mr-2" />
+                    <div className="text-lg font-bold text-purple-600">
+                      Active
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-600">Last Login</div>
+                  <div className="text-sm text-gray-600">Account Status</div>
                 </div>
               </div>
 
-              <div className="mt-6 pt-6 border-t">
-                <div className="flex justify-between items-center">
+              <div className="p-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-white">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>
-                    <h3 className="font-semibold">Need more quota?</h3>
-                    <p className="text-sm text-gray-600">Upgrade to Pro for unlimited processing</p>
+                    <h3 className="font-semibold text-lg mb-2">Need more quota?</h3>
+                    <p className="text-blue-100">Upgrade to Pro for unlimited processing power</p>
                   </div>
                   <Button 
-                    variant="outline" 
+                    variant="secondary" 
                     onClick={() => navigate('/payments')}
-                    className="bg-blue-600 text-white hover:bg-blue-700"
+                    className="bg-white text-blue-600 hover:bg-blue-50 transition-all duration-200 transform hover:scale-105"
                   >
+                    <Crown className="mr-2 h-4 w-4" />
                     Upgrade Plan
                   </Button>
                 </div>

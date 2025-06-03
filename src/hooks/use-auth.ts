@@ -100,11 +100,50 @@ export function useAuth(): AuthContext {
           console.log('Auth state changed:', event, session?.user?.email);
 
           if (event === 'SIGNED_IN' && session?.user) {
-            // Redirect to dashboard immediately after sign in
-            window.location.href = '/';
-          }
+            setState(prev => ({ ...prev, loading: true }));
+            
+            try {
+              const [profile, quota] = await Promise.allSettled([
+                fetchUserProfile(session.user.id),
+                fetchUserQuota(session.user.id)
+              ]);
 
-          if (session?.user) {
+              const profileData = profile.status === 'fulfilled' ? profile.value : null;
+              const quotaData = quota.status === 'fulfilled' ? quota.value : null;
+
+              setState({
+                user: session.user,
+                profile: profileData,
+                quota: quotaData,
+                loading: false,
+                error: null
+              });
+
+              // Redirect to dashboard after successful sign in
+              setTimeout(() => {
+                window.location.href = '/';
+              }, 100);
+            } catch (error) {
+              console.error('Profile/quota fetch error on auth change:', error);
+              setState({
+                user: session.user,
+                profile: null,
+                quota: null,
+                loading: false,
+                error: null
+              });
+            }
+          } else if (event === 'SIGNED_OUT') {
+            setState({
+              user: null,
+              profile: null,
+              quota: null,
+              loading: false,
+              error: null
+            });
+          } else if (session?.user) {
+            setState(prev => ({ ...prev, loading: true }));
+            
             try {
               const [profile, quota] = await Promise.allSettled([
                 fetchUserProfile(session.user.id),
@@ -170,14 +209,13 @@ export function useAuth(): AuthContext {
 
   const signOut = async () => {
     try {
-      setState(prev => ({ ...prev, error: null }));
+      setState(prev => ({ ...prev, error: null, loading: true }));
       await signOutUser();
-      // Redirect to home after sign out
-      window.location.href = '/';
     } catch (error) {
       console.error('Sign out error:', error);
       setState(prev => ({
         ...prev,
+        loading: false,
         error: error instanceof Error ? error.message : 'Failed to sign out'
       }));
     }

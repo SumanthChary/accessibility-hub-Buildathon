@@ -6,17 +6,19 @@ import { useAuth } from '@/hooks/use-auth';
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading } = useAuth();
 
   const scrollToSection = (sectionId: string) => {
-    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
     setIsMenuOpen(false);
   };
 
   const handleSignOut = async () => {
     await signOut();
     setIsMenuOpen(false);
-    window.location.href = '/';
   };
 
   const navigateToAuth = () => {
@@ -34,53 +36,65 @@ export const Header = () => {
     setIsMenuOpen(false);
   };
 
+  const navigateToHome = () => {
+    window.location.href = '/';
+    setIsMenuOpen(false);
+  };
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200">
-      <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-        <div className="flex items-center justify-between h-14 sm:h-16">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 transition-all duration-200">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 lg:h-18">
           {/* Logo */}
-          <div className="flex items-center space-x-1 sm:space-x-2 min-w-0">
-            <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 text-blue-600 flex-shrink-0" />
-            <span className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 truncate">
+          <div 
+            className="flex items-center space-x-2 cursor-pointer transition-transform hover:scale-105" 
+            onClick={navigateToHome}
+          >
+            <Sparkles className="h-6 w-6 lg:h-8 lg:w-8 text-blue-600 animate-pulse" />
+            <span className="text-lg lg:text-xl font-bold text-gray-900 tracking-tight">
               AccessifyAI
             </span>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-4 xl:space-x-6">
-            {!user && (
-              <>
-                <button 
-                  onClick={() => scrollToSection('features')} 
-                  className="text-gray-600 hover:text-gray-900 transition-colors text-sm xl:text-base whitespace-nowrap"
-                >
-                  Features
-                </button>
-                <button 
-                  onClick={() => scrollToSection('pricing')} 
-                  className="text-gray-600 hover:text-gray-900 transition-colors text-sm xl:text-base whitespace-nowrap"
-                >
-                  Pricing
-                </button>
-                <button 
-                  onClick={() => scrollToSection('demo-section')} 
-                  className="text-gray-600 hover:text-gray-900 transition-colors text-sm xl:text-base whitespace-nowrap"
-                >
-                  Demo
-                </button>
-              </>
-            )}
+          <nav className="hidden lg:flex items-center space-x-8">
+            <button 
+              onClick={navigateToHome}
+              className="text-gray-600 hover:text-blue-600 transition-colors duration-200 font-medium"
+            >
+              Home
+            </button>
+            <button 
+              onClick={() => scrollToSection('features')} 
+              className="text-gray-600 hover:text-blue-600 transition-colors duration-200 font-medium"
+            >
+              Features
+            </button>
+            <button 
+              onClick={() => scrollToSection('pricing')} 
+              className="text-gray-600 hover:text-blue-600 transition-colors duration-200 font-medium"
+            >
+              Pricing
+            </button>
+            <button 
+              onClick={() => scrollToSection('demo-section')} 
+              className="text-gray-600 hover:text-blue-600 transition-colors duration-200 font-medium"
+            >
+              Demo
+            </button>
           </nav>
 
           {/* Auth Buttons - Desktop */}
-          <div className="hidden md:flex items-center space-x-2 lg:space-x-3 min-w-0">
-            {user ? (
+          <div className="hidden md:flex items-center space-x-3">
+            {loading ? (
+              <div className="w-20 h-9 bg-gray-200 animate-pulse rounded-md"></div>
+            ) : user ? (
               <>
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={navigateToProfile}
-                  className="text-xs lg:text-sm whitespace-nowrap px-2 lg:px-3"
+                  className="hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
                 >
                   Profile
                 </Button>
@@ -88,7 +102,7 @@ export const Header = () => {
                   variant="ghost" 
                   size="sm" 
                   onClick={navigateToPayments}
-                  className="text-xs lg:text-sm whitespace-nowrap px-2 lg:px-3"
+                  className="hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
                 >
                   Billing
                 </Button>
@@ -96,7 +110,7 @@ export const Header = () => {
                   variant="outline" 
                   size="sm" 
                   onClick={handleSignOut}
-                  className="text-xs lg:text-sm whitespace-nowrap px-2 lg:px-3"
+                  className="hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all duration-200"
                 >
                   Sign Out
                 </Button>
@@ -107,14 +121,14 @@ export const Header = () => {
                   variant="ghost" 
                   size="sm" 
                   onClick={navigateToAuth}
-                  className="text-xs lg:text-sm whitespace-nowrap px-2 lg:px-3"
+                  className="hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
                 >
                   Sign In
                 </Button>
                 <Button 
                   size="sm" 
                   onClick={navigateToAuth}
-                  className="bg-blue-600 hover:bg-blue-700 text-xs lg:text-sm whitespace-nowrap px-2 lg:px-3"
+                  className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
                 >
                   Get Started
                 </Button>
@@ -124,7 +138,7 @@ export const Header = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-1.5 flex-shrink-0"
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -138,39 +152,43 @@ export const Header = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-3 bg-white">
-            <div className="flex flex-col space-y-3">
-              {!user && (
-                <>
-                  <button 
-                    onClick={() => scrollToSection('features')} 
-                    className="text-left text-gray-600 hover:text-gray-900 transition-colors py-2 px-1 text-sm"
-                  >
-                    Features
-                  </button>
-                  <button 
-                    onClick={() => scrollToSection('pricing')} 
-                    className="text-left text-gray-600 hover:text-gray-900 transition-colors py-2 px-1 text-sm"
-                  >
-                    Pricing
-                  </button>
-                  <button 
-                    onClick={() => scrollToSection('demo-section')} 
-                    className="text-left text-gray-600 hover:text-gray-900 transition-colors py-2 px-1 text-sm"
-                  >
-                    Demo
-                  </button>
-                </>
-              )}
+          <div className="md:hidden border-t border-gray-200 py-4 bg-white/95 backdrop-blur-md animate-in slide-in-from-top duration-300">
+            <div className="flex flex-col space-y-4">
+              <button 
+                onClick={navigateToHome}
+                className="text-left text-gray-600 hover:text-blue-600 transition-colors duration-200 py-2 px-2 font-medium"
+              >
+                Home
+              </button>
+              <button 
+                onClick={() => scrollToSection('features')} 
+                className="text-left text-gray-600 hover:text-blue-600 transition-colors duration-200 py-2 px-2 font-medium"
+              >
+                Features
+              </button>
+              <button 
+                onClick={() => scrollToSection('pricing')} 
+                className="text-left text-gray-600 hover:text-blue-600 transition-colors duration-200 py-2 px-2 font-medium"
+              >
+                Pricing
+              </button>
+              <button 
+                onClick={() => scrollToSection('demo-section')} 
+                className="text-left text-gray-600 hover:text-blue-600 transition-colors duration-200 py-2 px-2 font-medium"
+              >
+                Demo
+              </button>
               
-              <div className="pt-2 space-y-2">
-                {user ? (
+              <div className="pt-4 border-t border-gray-200 space-y-3">
+                {loading ? (
+                  <div className="w-full h-9 bg-gray-200 animate-pulse rounded-md"></div>
+                ) : user ? (
                   <>
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       onClick={navigateToProfile}
-                      className="justify-start w-full text-sm"
+                      className="justify-start w-full hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
                     >
                       Profile
                     </Button>
@@ -178,7 +196,7 @@ export const Header = () => {
                       variant="ghost" 
                       size="sm" 
                       onClick={navigateToPayments}
-                      className="justify-start w-full text-sm"
+                      className="justify-start w-full hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
                     >
                       Billing
                     </Button>
@@ -186,7 +204,7 @@ export const Header = () => {
                       variant="outline" 
                       size="sm" 
                       onClick={handleSignOut}
-                      className="justify-start w-full text-sm"
+                      className="justify-start w-full hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all duration-200"
                     >
                       Sign Out
                     </Button>
@@ -197,14 +215,14 @@ export const Header = () => {
                       variant="ghost" 
                       size="sm" 
                       onClick={navigateToAuth}
-                      className="justify-start w-full text-sm"
+                      className="justify-start w-full hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
                     >
                       Sign In
                     </Button>
                     <Button 
                       size="sm" 
                       onClick={navigateToAuth}
-                      className="justify-start w-full bg-blue-600 hover:bg-blue-700 text-sm"
+                      className="justify-start w-full bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200"
                     >
                       Get Started
                     </Button>
