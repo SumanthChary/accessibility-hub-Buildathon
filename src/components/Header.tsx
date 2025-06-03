@@ -18,6 +18,21 @@ export const Header = () => {
     setIsMenuOpen(false);
   };
 
+  const navigateToAuth = () => {
+    window.location.href = '/auth';
+    setIsMenuOpen(false);
+  };
+
+  const navigateToPayments = () => {
+    window.location.href = '/payments';
+    setIsMenuOpen(false);
+  };
+
+  const navigateToProfile = () => {
+    window.location.href = '/profile';
+    setIsMenuOpen(false);
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -61,7 +76,7 @@ export const Header = () => {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  onClick={() => window.location.href = '/profile'}
+                  onClick={navigateToProfile}
                   className="text-sm lg:text-base"
                 >
                   Profile
@@ -69,7 +84,7 @@ export const Header = () => {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  onClick={() => window.location.href = '/payments'}
+                  onClick={navigateToPayments}
                   className="text-sm lg:text-base"
                 >
                   Billing
@@ -88,14 +103,14 @@ export const Header = () => {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  onClick={() => window.location.href = '/auth'}
+                  onClick={navigateToAuth}
                   className="text-sm lg:text-base"
                 >
                   Sign In
                 </Button>
                 <Button 
                   size="sm" 
-                  onClick={() => window.location.href = '/auth'}
+                  onClick={navigateToAuth}
                   className="bg-blue-600 hover:bg-blue-700 text-sm lg:text-base"
                 >
                   Get Started
@@ -149,10 +164,7 @@ export const Header = () => {
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    onClick={() => {
-                      window.location.href = '/profile';
-                      setIsMenuOpen(false);
-                    }}
+                    onClick={navigateToProfile}
                     className="justify-start"
                   >
                     Profile
@@ -160,10 +172,7 @@ export const Header = () => {
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    onClick={() => {
-                      window.location.href = '/payments';
-                      setIsMenuOpen(false);
-                    }}
+                    onClick={navigateToPayments}
                     className="justify-start"
                   >
                     Billing
@@ -182,20 +191,14 @@ export const Header = () => {
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    onClick={() => {
-                      window.location.href = '/auth';
-                      setIsMenuOpen(false);
-                    }}
+                    onClick={navigateToAuth}
                     className="justify-start"
                   >
                     Sign In
                   </Button>
                   <Button 
                     size="sm" 
-                    onClick={() => {
-                      window.location.href = '/auth';
-                      setIsMenuOpen(false);
-                    }}
+                    onClick={navigateToAuth}
                     className="justify-start bg-blue-600 hover:bg-blue-700"
                   >
                     Get Started

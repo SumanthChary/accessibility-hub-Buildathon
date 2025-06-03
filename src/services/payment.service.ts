@@ -11,6 +11,17 @@ export interface PaymentPlan {
 
 export const createCheckoutSession = async (planId: string, isSubscription: boolean = true) => {
   try {
+    console.log('Creating checkout session for plan:', planId);
+    
+    if (!supabase) {
+      throw new Error('Supabase client not available');
+    }
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase.functions.invoke('create-checkout-session', {
       body: {
         planId,
@@ -20,11 +31,18 @@ export const createCheckoutSession = async (planId: string, isSubscription: bool
       },
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase function error:', error);
+      throw error;
+    }
+
+    console.log('Checkout session response:', data);
 
     if (data?.url) {
       // Open Stripe checkout in same window for better UX
       window.location.href = data.url;
+    } else {
+      throw new Error('No checkout URL received');
     }
 
     return data;
@@ -36,6 +54,17 @@ export const createCheckoutSession = async (planId: string, isSubscription: bool
 
 export const createOneTimePayment = async (amount: number, description: string) => {
   try {
+    console.log('Creating one-time payment:', { amount, description });
+    
+    if (!supabase) {
+      throw new Error('Supabase client not available');
+    }
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase.functions.invoke('create-checkout-session', {
       body: {
         planId: 'one_time',
@@ -47,10 +76,15 @@ export const createOneTimePayment = async (amount: number, description: string) 
       },
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase function error:', error);
+      throw error;
+    }
 
     if (data?.url) {
       window.location.href = data.url;
+    } else {
+      throw new Error('No checkout URL received');
     }
 
     return data;

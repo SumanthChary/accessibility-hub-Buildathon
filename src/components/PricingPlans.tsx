@@ -10,6 +10,8 @@ export const PricingPlans = () => {
   const { user } = useAuth();
 
   const handlePlanClick = (planName: string) => {
+    console.log('Plan clicked:', planName, 'User:', user?.email);
+    
     if (planName === 'Free') {
       if (!user) {
         navigate('/auth');
@@ -17,15 +19,8 @@ export const PricingPlans = () => {
       return;
     }
     
-    if (planName === 'Pro') {
-      navigate('/payments');
-      return;
-    }
-    
-    if (planName === 'Enterprise') {
-      // For enterprise, you might want to navigate to a contact form
-      navigate('/payments');
-    }
+    // For Pro and Enterprise plans, go to payments page
+    navigate('/payments');
   };
 
   const plans = [

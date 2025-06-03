@@ -12,7 +12,6 @@ import {
   TrendingUp, 
   CreditCard,
   User,
-  Settings,
   Zap
 } from 'lucide-react';
 
@@ -73,66 +72,66 @@ export const Dashboard = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
         <Card className="border-l-4 border-l-blue-500">
-          <CardContent className="p-4">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Audio Minutes</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-600 truncate">Audio Minutes</p>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900">
                   {quota ? 60 - quota.audio_minutes : 60}
                 </p>
                 <p className="text-xs text-gray-500">of 60 remaining</p>
               </div>
-              <Volume2 className="h-8 w-8 text-blue-500" />
+              <Volume2 className="h-8 w-8 text-blue-500 flex-shrink-0" />
             </div>
-            <Progress value={audioUsage} className="mt-2 h-1" />
+            <Progress value={audioUsage} className="mt-3 h-2" />
           </CardContent>
         </Card>
 
         <Card className="border-l-4 border-l-green-500">
-          <CardContent className="p-4">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Images</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-600 truncate">Images</p>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900">
                   {quota ? 100 - quota.image_count : 100}
                 </p>
                 <p className="text-xs text-gray-500">of 100 remaining</p>
               </div>
-              <Image className="h-8 w-8 text-green-500" />
+              <Image className="h-8 w-8 text-green-500 flex-shrink-0" />
             </div>
-            <Progress value={imageUsage} className="mt-2 h-1" />
+            <Progress value={imageUsage} className="mt-3 h-2" />
           </CardContent>
         </Card>
 
         <Card className="border-l-4 border-l-purple-500">
-          <CardContent className="p-4">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">PDF Pages</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-600 truncate">PDF Pages</p>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900">
                   {quota ? 50 - quota.pdf_pages : 50}
                 </p>
                 <p className="text-xs text-gray-500">of 50 remaining</p>
               </div>
-              <FileText className="h-8 w-8 text-purple-500" />
+              <FileText className="h-8 w-8 text-purple-500 flex-shrink-0" />
             </div>
-            <Progress value={pdfUsage} className="mt-2 h-1" />
+            <Progress value={pdfUsage} className="mt-3 h-2" />
           </CardContent>
         </Card>
 
         <Card className="border-l-4 border-l-orange-500">
-          <CardContent className="p-4">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Plan</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-600 truncate">Plan</p>
                 <p className="text-lg sm:text-xl font-bold text-gray-900">
                   {profile?.subscription_tier?.toUpperCase() || 'FREE'}
                 </p>
                 <p className="text-xs text-gray-500">Current tier</p>
               </div>
-              <CreditCard className="h-8 w-8 text-orange-500" />
+              <CreditCard className="h-8 w-8 text-orange-500 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
@@ -141,7 +140,7 @@ export const Dashboard = () => {
       {/* Quick Actions */}
       <div className="mb-8">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {quickActions.map((action, index) => {
             const Icon = action.icon;
             return (
