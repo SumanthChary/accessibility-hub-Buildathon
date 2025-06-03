@@ -51,8 +51,8 @@ export const AuthCallback = () => {
             description: 'You have been successfully signed in.',
           });
           
-          // Redirect to dashboard
-          navigate('/', { replace: true });
+          // Force redirect to home page which will show dashboard for authenticated users
+          window.location.href = '/';
         } else {
           navigate('/auth');
         }
@@ -67,9 +67,10 @@ export const AuthCallback = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="animate-pulse text-center">
+      <div className="animate-pulse text-center p-4">
         <h2 className="text-xl sm:text-2xl font-semibold mb-4">Completing sign in...</h2>
-        <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <p className="text-sm text-gray-600 mt-4">Redirecting to dashboard...</p>
       </div>
     </div>
   );
