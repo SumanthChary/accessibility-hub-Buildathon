@@ -52,7 +52,9 @@ export const AuthCallback = () => {
           });
           
           // Clean redirect to dashboard
-          window.location.replace('/');
+          setTimeout(() => {
+            window.location.replace('/');
+          }, 1000);
         } else {
           navigate('/auth');
         }
@@ -66,14 +68,14 @@ export const AuthCallback = () => {
   }, [navigate, toast]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
-      <div className="text-center p-8 bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl max-w-md mx-4">
-        <div className="mb-6">
-          <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 px-3 sm:px-4">
+      <div className="text-center p-6 sm:p-8 bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl max-w-md mx-4 w-full">
+        <div className="mb-4 sm:mb-6">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 animate-pulse">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Almost there!</h2>
-          <p className="text-gray-600">Completing your sign in...</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Almost there!</h2>
+          <p className="text-gray-600 text-sm sm:text-base">Completing your sign in...</p>
         </div>
         
         <div className="space-y-2">

@@ -64,11 +64,11 @@ export const AuthUI = () => {
       if (error) throw error;
 
       toast({
-        title: 'Account Created!',
-        description: 'Check your email for confirmation link or sign in directly.',
+        title: 'Account Created Successfully!',
+        description: 'Redirecting to dashboard...',
       });
       
-      // Auto redirect to dashboard after signup
+      // Redirect to dashboard after successful signup
       setTimeout(() => {
         window.location.replace('/');
       }, 1000);
@@ -99,11 +99,13 @@ export const AuthUI = () => {
 
       toast({
         title: 'Welcome back!',
-        description: 'You have been successfully signed in.',
+        description: 'Redirecting to dashboard...',
       });
 
-      // Immediate redirect to dashboard
-      window.location.replace('/');
+      // Redirect to dashboard after successful sign in
+      setTimeout(() => {
+        window.location.replace('/');
+      }, 1000);
     } catch (error: any) {
       toast({
         title: 'Sign in failed',
@@ -142,13 +144,13 @@ export const AuthUI = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 py-6 sm:py-8 md:py-12 px-3 sm:px-4 md:px-6 lg:px-8">
       <div className="max-w-md w-full">
-        <div className="mb-6">
+        <div className="mb-4 sm:mb-6">
           <Button
             variant="ghost"
             onClick={() => navigate('/')}
-            className="mb-4 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
+            className="mb-3 sm:mb-4 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Home
@@ -156,25 +158,25 @@ export const AuthUI = () => {
         </div>
 
         <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
-          <CardHeader className="text-center pb-6">
-            <CardTitle className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <CardHeader className="text-center pb-4 sm:pb-6">
+            <CardTitle className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Welcome to AccessifyAI
             </CardTitle>
-            <CardDescription className="text-base">
+            <CardDescription className="text-sm sm:text-base">
               Sign in to your account or create a new one
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4 sm:space-y-6">
             <Tabs value={isSignUp ? 'signup' : 'signin'} onValueChange={(value) => setIsSignUp(value === 'signup')}>
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                <TabsTrigger value="signin" className="text-sm">Sign In</TabsTrigger>
+                <TabsTrigger value="signup" className="text-sm">Sign Up</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="signin" className="space-y-4 mt-6">
+              <TabsContent value="signin" className="space-y-4 mt-4 sm:mt-6">
                 <form onSubmit={handleCustomSignIn} className="space-y-4">
                   <div>
-                    <Label htmlFor="signin-email">Email</Label>
+                    <Label htmlFor="signin-email" className="text-sm">Email</Label>
                     <div className="relative mt-2">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
@@ -190,7 +192,7 @@ export const AuthUI = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="signin-password">Password</Label>
+                    <Label htmlFor="signin-password" className="text-sm">Password</Label>
                     <div className="relative mt-2">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
@@ -234,11 +236,11 @@ export const AuthUI = () => {
                 />
               </TabsContent>
               
-              <TabsContent value="signup" className="space-y-4 mt-6">
+              <TabsContent value="signup" className="space-y-4 mt-4 sm:mt-6">
                 <form onSubmit={handleCustomSignUp} className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label htmlFor="fullName">Full Name</Label>
+                      <Label htmlFor="fullName" className="text-sm">Full Name</Label>
                       <div className="relative mt-2">
                         <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                         <Input
@@ -253,7 +255,7 @@ export const AuthUI = () => {
                       </div>
                     </div>
                     <div>
-                      <Label htmlFor="username">Username</Label>
+                      <Label htmlFor="username" className="text-sm">Username</Label>
                       <Input
                         id="username"
                         type="text"
@@ -267,7 +269,7 @@ export const AuthUI = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email" className="text-sm">Email</Label>
                     <div className="relative mt-2">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
@@ -283,7 +285,7 @@ export const AuthUI = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password" className="text-sm">Password</Label>
                     <div className="relative mt-2">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
@@ -299,7 +301,7 @@ export const AuthUI = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="avatarUrl">Profile Picture URL (Optional)</Label>
+                    <Label htmlFor="avatarUrl" className="text-sm">Profile Picture URL (Optional)</Label>
                     <div className="relative mt-2">
                       <Camera className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input

@@ -119,9 +119,11 @@ export function useAuth(): AuthContext {
                 error: null
               });
 
-              // Clean redirect to dashboard
+              // Redirect to dashboard after successful sign in
               if (window.location.pathname === '/auth' || window.location.pathname === '/auth/callback') {
-                window.location.replace('/');
+                setTimeout(() => {
+                  window.location.replace('/');
+                }, 100);
               }
             } catch (error) {
               console.error('Profile/quota fetch error on auth change:', error);
