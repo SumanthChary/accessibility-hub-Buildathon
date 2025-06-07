@@ -119,10 +119,10 @@ export function useAuth(): AuthContext {
                 error: null
               });
 
-              // Redirect to dashboard after successful sign in
-              setTimeout(() => {
-                window.location.href = '/';
-              }, 100);
+              // Clean redirect to dashboard
+              if (window.location.pathname === '/auth' || window.location.pathname === '/auth/callback') {
+                window.location.replace('/');
+              }
             } catch (error) {
               console.error('Profile/quota fetch error on auth change:', error);
               setState({
@@ -134,43 +134,6 @@ export function useAuth(): AuthContext {
               });
             }
           } else if (event === 'SIGNED_OUT') {
-            setState({
-              user: null,
-              profile: null,
-              quota: null,
-              loading: false,
-              error: null
-            });
-          } else if (session?.user) {
-            setState(prev => ({ ...prev, loading: true }));
-            
-            try {
-              const [profile, quota] = await Promise.allSettled([
-                fetchUserProfile(session.user.id),
-                fetchUserQuota(session.user.id)
-              ]);
-
-              const profileData = profile.status === 'fulfilled' ? profile.value : null;
-              const quotaData = quota.status === 'fulfilled' ? quota.value : null;
-
-              setState({
-                user: session.user,
-                profile: profileData,
-                quota: quotaData,
-                loading: false,
-                error: null
-              });
-            } catch (error) {
-              console.error('Profile/quota fetch error on auth change:', error);
-              setState({
-                user: session.user,
-                profile: null,
-                quota: null,
-                loading: false,
-                error: null
-              });
-            }
-          } else {
             setState({
               user: null,
               profile: null,
@@ -211,6 +174,8 @@ export function useAuth(): AuthContext {
     try {
       setState(prev => ({ ...prev, error: null, loading: true }));
       await signOutUser();
+      // Force redirect to home after sign out
+      window.location.replace('/');
     } catch (error) {
       console.error('Sign out error:', error);
       setState(prev => ({

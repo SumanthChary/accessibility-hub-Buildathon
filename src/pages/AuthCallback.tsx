@@ -51,8 +51,8 @@ export const AuthCallback = () => {
             description: 'You have been successfully signed in.',
           });
           
-          // Immediate redirect to dashboard
-          window.location.href = '/';
+          // Clean redirect to dashboard
+          window.location.replace('/');
         } else {
           navigate('/auth');
         }
@@ -67,9 +67,9 @@ export const AuthCallback = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
-      <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md mx-4">
+      <div className="text-center p-8 bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl max-w-md mx-4">
         <div className="mb-6">
-          <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+          <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
             <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Almost there!</h2>
@@ -78,7 +78,7 @@ export const AuthCallback = () => {
         
         <div className="space-y-2">
           <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div className="h-full bg-blue-600 rounded-full animate-pulse" style={{ width: '75%' }}></div>
+            <div className="h-full bg-gradient-to-r from-blue-600 to-purple-600 rounded-full animate-pulse" style={{ width: '75%' }}></div>
           </div>
           <p className="text-sm text-gray-500">Redirecting to dashboard...</p>
         </div>

@@ -87,7 +87,10 @@ export const Header = () => {
           {/* Auth Buttons - Desktop */}
           <div className="hidden md:flex items-center space-x-3">
             {loading ? (
-              <div className="w-20 h-9 bg-gray-200 animate-pulse rounded-md"></div>
+              <div className="flex space-x-2">
+                <div className="w-16 h-9 bg-gray-200 animate-pulse rounded-md"></div>
+                <div className="w-20 h-9 bg-gray-200 animate-pulse rounded-md"></div>
+              </div>
             ) : user ? (
               <>
                 <Button 
@@ -181,7 +184,10 @@ export const Header = () => {
               
               <div className="pt-4 border-t border-gray-200 space-y-3">
                 {loading ? (
-                  <div className="w-full h-9 bg-gray-200 animate-pulse rounded-md"></div>
+                  <div className="space-y-2">
+                    <div className="w-full h-9 bg-gray-200 animate-pulse rounded-md"></div>
+                    <div className="w-full h-9 bg-gray-200 animate-pulse rounded-md"></div>
+                  </div>
                 ) : user ? (
                   <>
                     <Button 
