@@ -1,81 +1,66 @@
 
 import { useState } from 'react';
-import { Auth } from '@supabase/auth-ui-react';
-import { ThemeSupa } from '@supabase/auth-ui-shared';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Mail, Lock, Camera, ArrowLeft } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Sparkles, Mail, Lock, User, ArrowLeft, Github } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 export const AuthUI = () => {
+  const [isSignIn, setIsSignIn] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    fullName: '',
-    username: '',
-    avatarUrl: ''
+    fullName: ''
   });
-  const navigate = useNavigate();
+  const { signIn } = useAuth();
   const { toast } = useToast();
 
-  const appearance = {
-    theme: ThemeSupa,
-    variables: {
-      default: {
-        colors: {
-          brand: '#2563eb',
-          brandAccent: '#1d4ed8',
-        },
-      },
-    },
-    className: {
-      container: 'w-full',
-      button: 'w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700',
-      input: 'w-full px-3 py-2 border rounded',
-    },
-  };
-
-  const handleCustomSignUp = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!supabase) return;
-    
     setLoading(true);
+
     try {
-      const { error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName,
-            username: formData.username,
-            avatar_url: formData.avatarUrl
-          },
-          emailRedirectTo: `${window.location.origin}/auth/callback`
-        }
-      });
+      if (isSignIn) {
+        // Sign in
+        const { error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: 'Account Created Successfully!',
-        description: 'Redirecting to dashboard...',
-      });
-      
-      // Redirect to dashboard after successful signup
-      setTimeout(() => {
-        window.location.replace('/');
-      }, 1000);
-      
+        toast({
+          title: 'Welcome back!',
+          description: 'You have been successfully signed in.',
+        });
+      } else {
+        // Sign up
+        const { error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              full_name: formData.fullName,
+            },
+            emailRedirectTo: `${window.location.origin}/`
+          }
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: 'Account created!',
+          description: 'Please check your email to verify your account.',
+        });
+      }
     } catch (error: any) {
       toast({
-        title: 'Sign up failed',
+        title: isSignIn ? 'Sign in failed' : 'Sign up failed',
         description: error.message,
         variant: 'destructive',
       });
@@ -84,32 +69,14 @@ export const AuthUI = () => {
     }
   };
 
-  const handleCustomSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!supabase) return;
-    
+  const handleOAuthSignIn = async (provider: 'google' | 'github') => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: 'Welcome back!',
-        description: 'Redirecting to dashboard...',
-      });
-
-      // Redirect to dashboard after successful sign in
-      setTimeout(() => {
-        window.location.replace('/');
-      }, 1000);
-    } catch (error: any) {
+      await signIn(provider);
+    } catch (error) {
       toast({
         title: 'Sign in failed',
-        description: error.message,
+        description: 'Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -121,229 +88,163 @@ export const AuthUI = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  if (!supabase) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full">
-          <Card>
-            <CardHeader className="text-center">
-              <CardTitle>Authentication Unavailable</CardTitle>
-              <CardDescription>
-                Supabase configuration is required for authentication
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button onClick={() => navigate('/')} className="w-full">
-                Continue to App
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 py-6 sm:py-8 md:py-12 px-3 sm:px-4 md:px-6 lg:px-8">
-      <div className="max-w-md w-full">
-        <div className="mb-4 sm:mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/')}
-            className="mb-3 sm:mb-4 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Home
-          </Button>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+      {/* Background Effects */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-tr from-green-400/20 to-blue-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
+        {/* Back to Home Button */}
+        <Button
+          variant="ghost"
+          onClick={() => window.location.href = '/'}
+          className="mb-6 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Home
+        </Button>
 
         <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
-          <CardHeader className="text-center pb-4 sm:pb-6">
-            <CardTitle className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Welcome to AccessifyAI
-            </CardTitle>
-            <CardDescription className="text-sm sm:text-base">
-              Sign in to your account or create a new one
-            </CardDescription>
+          <CardHeader className="space-y-4 text-center pb-6">
+            <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center mx-auto">
+              <Sparkles className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <CardTitle className="text-2xl font-bold">
+                {isSignIn ? 'Welcome back' : 'Create account'}
+              </CardTitle>
+              <CardDescription className="text-base">
+                {isSignIn 
+                  ? 'Sign in to your AccessifyAI account' 
+                  : 'Join AccessifyAI and start transforming content'
+                }
+              </CardDescription>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-4 sm:space-y-6">
-            <Tabs value={isSignUp ? 'signup' : 'signin'} onValueChange={(value) => setIsSignUp(value === 'signup')}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin" className="text-sm">Sign In</TabsTrigger>
-                <TabsTrigger value="signup" className="text-sm">Sign Up</TabsTrigger>
-              </TabsList>
+
+          <CardContent className="space-y-6">
+            {/* OAuth Buttons */}
+            <div className="space-y-3">
+              <Button
+                variant="outline"
+                onClick={() => handleOAuthSignIn('google')}
+                disabled={loading}
+                className="w-full py-3 border-2 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
+              >
+                <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Continue with Google
+              </Button>
               
-              <TabsContent value="signin" className="space-y-4 mt-4 sm:mt-6">
-                <form onSubmit={handleCustomSignIn} className="space-y-4">
-                  <div>
-                    <Label htmlFor="signin-email" className="text-sm">Email</Label>
-                    <div className="relative mt-2">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="signin-email"
-                        type="email"
-                        placeholder="john@example.com"
-                        value={formData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
+              <Button
+                variant="outline"
+                onClick={() => handleOAuthSignIn('github')}
+                disabled={loading}
+                className="w-full py-3 border-2 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+              >
+                <Github className="mr-2 h-5 w-5" />
+                Continue with GitHub
+              </Button>
+            </div>
 
-                  <div>
-                    <Label htmlFor="signin-password" className="text-sm">Password</Label>
-                    <div className="relative mt-2">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="signin-password"
-                        type="password"
-                        placeholder="••••••••"
-                        value={formData.password}
-                        onChange={(e) => handleInputChange('password', e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-500">Or continue with email</span>
+              </div>
+            </div>
 
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-blue-600 hover:bg-blue-700 transition-all duration-200" 
-                    disabled={loading}
-                  >
-                    {loading ? 'Signing In...' : 'Sign In'}
-                  </Button>
-                </form>
-
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-2 text-gray-500">Or continue with</span>
+            {/* Email/Password Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {!isSignIn && (
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                    <Input
+                      id="fullName"
+                      type="text"
+                      placeholder="Enter your full name"
+                      value={formData.fullName}
+                      onChange={(e) => handleInputChange('fullName', e.target.value)}
+                      className="pl-10 py-3"
+                      required={!isSignIn}
+                    />
                   </div>
                 </div>
+              )}
 
-                <Auth
-                  supabaseClient={supabase}
-                  appearance={appearance}
-                  providers={['google', 'github']}
-                  view="sign_in"
-                  showLinks={false}
-                  redirectTo={`${window.location.origin}/auth/callback`}
-                  onlyThirdPartyProviders={true}
-                />
-              </TabsContent>
-              
-              <TabsContent value="signup" className="space-y-4 mt-4 sm:mt-6">
-                <form onSubmit={handleCustomSignUp} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label htmlFor="fullName" className="text-sm">Full Name</Label>
-                      <div className="relative mt-2">
-                        <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="fullName"
-                          type="text"
-                          placeholder="John Doe"
-                          value={formData.fullName}
-                          onChange={(e) => handleInputChange('fullName', e.target.value)}
-                          className="pl-10"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="username" className="text-sm">Username</Label>
-                      <Input
-                        id="username"
-                        type="text"
-                        placeholder="johndoe"
-                        value={formData.username}
-                        onChange={(e) => handleInputChange('username', e.target.value)}
-                        className="mt-2"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="email" className="text-sm">Email</Label>
-                    <div className="relative mt-2">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="john@example.com"
-                        value={formData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="password" className="text-sm">Password</Label>
-                    <div className="relative mt-2">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="password"
-                        type="password"
-                        placeholder="••••••••"
-                        value={formData.password}
-                        onChange={(e) => handleInputChange('password', e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="avatarUrl" className="text-sm">Profile Picture URL (Optional)</Label>
-                    <div className="relative mt-2">
-                      <Camera className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="avatarUrl"
-                        type="url"
-                        placeholder="https://example.com/avatar.jpg"
-                        value={formData.avatarUrl}
-                        onChange={(e) => handleInputChange('avatarUrl', e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
-
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-blue-600 hover:bg-blue-700 transition-all duration-200" 
-                    disabled={loading}
-                  >
-                    {loading ? 'Creating Account...' : 'Create Account'}
-                  </Button>
-                </form>
-
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
                 <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-2 text-gray-500">Or continue with</span>
-                  </div>
+                  <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    className="pl-10 py-3"
+                    required
+                  />
                 </div>
+              </div>
 
-                <Auth
-                  supabaseClient={supabase}
-                  appearance={appearance}
-                  providers={['google', 'github']}
-                  view="sign_up"
-                  showLinks={false}
-                  redirectTo={`${window.location.origin}/auth/callback`}
-                  onlyThirdPartyProviders={true}
-                />
-              </TabsContent>
-            </Tabs>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={formData.password}
+                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    className="pl-10 py-3"
+                    required
+                    minLength={6}
+                  />
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium transition-all duration-200 transform hover:scale-105"
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    {isSignIn ? 'Signing in...' : 'Creating account...'}
+                  </div>
+                ) : (
+                  isSignIn ? 'Sign In' : 'Create Account'
+                )}
+              </Button>
+            </form>
+
+            {/* Switch between sign in/up */}
+            <div className="text-center pt-4 border-t">
+              <p className="text-gray-600">
+                {isSignIn ? "Don't have an account?" : "Already have an account?"}
+                <button
+                  type="button"
+                  onClick={() => setIsSignIn(!isSignIn)}
+                  className="ml-2 text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
+                >
+                  {isSignIn ? 'Sign up' : 'Sign in'}
+                </button>
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>

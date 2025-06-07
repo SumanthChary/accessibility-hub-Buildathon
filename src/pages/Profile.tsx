@@ -10,9 +10,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { User, Mail, Camera, Save, ArrowLeft, TrendingUp, Calendar, FileText, Crown, Sparkles } from 'lucide-react';
+import { 
+  User, 
+  Mail, 
+  Camera, 
+  Save, 
+  ArrowLeft, 
+  TrendingUp, 
+  Calendar, 
+  FileText, 
+  Crown, 
+  Sparkles,
+  Shield,
+  CheckCircle,
+  Settings
+} from 'lucide-react';
 
 export const Profile = () => {
   const { user, profile, quota, updateProfile, loading } = useAuth();
@@ -76,15 +89,17 @@ export const Profile = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <main className="container mx-auto px-4 py-8 max-w-4xl">
+        <main className="container mx-auto px-4 py-8 pt-24 max-w-4xl">
           <div className="space-y-6">
             {/* Loading skeleton */}
-            <div className="h-8 bg-gray-200 rounded-md animate-pulse"></div>
-            <div className="h-4 bg-gray-200 rounded-md animate-pulse w-3/4"></div>
-            <div className="grid gap-6">
-              <div className="h-96 bg-gray-200 rounded-lg animate-pulse"></div>
-              <div className="h-64 bg-gray-200 rounded-lg animate-pulse"></div>
-              <div className="h-48 bg-gray-200 rounded-lg animate-pulse"></div>
+            <div className="animate-pulse space-y-4">
+              <div className="h-8 bg-gray-200 rounded-md w-1/3"></div>
+              <div className="h-4 bg-gray-200 rounded-md w-1/2"></div>
+              <div className="grid gap-6">
+                <div className="h-96 bg-gray-200 rounded-lg"></div>
+                <div className="h-64 bg-gray-200 rounded-lg"></div>
+                <div className="h-48 bg-gray-200 rounded-lg"></div>
+              </div>
             </div>
           </div>
         </main>
@@ -112,10 +127,10 @@ export const Profile = () => {
             className="mb-6 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Home
+            Back to Dashboard
           </Button>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+          <div className="flex items-center gap-4 mb-2">
+            <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
               <User className="h-6 w-6 text-white" />
             </div>
             <div>
@@ -127,10 +142,10 @@ export const Profile = () => {
 
         <div className="grid gap-8">
           {/* Profile Information */}
-          <Card className="animate-in fade-in-50 slide-in-from-bottom-4 duration-500 delay-100">
+          <Card className="animate-in fade-in-50 slide-in-from-bottom-4 duration-500 delay-100 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
+                <Settings className="h-5 w-5" />
                 Personal Information
               </CardTitle>
               <CardDescription>
@@ -140,16 +155,16 @@ export const Profile = () => {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Avatar Section */}
-                <div className="flex items-center space-x-6">
-                  <Avatar className="h-24 w-24 ring-4 ring-blue-100">
+                <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
+                  <Avatar className="h-24 w-24 ring-4 ring-blue-100 mx-auto sm:mx-0">
                     <AvatarImage src={formData.avatar_url} alt={formData.full_name} />
-                    <AvatarFallback className="text-xl bg-blue-100 text-blue-600">
+                    <AvatarFallback className="text-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white">
                       {formData.full_name?.[0] || formData.email?.[0]?.toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1">
+                  <div className="flex-1 space-y-2">
                     <Label htmlFor="avatar_url" className="text-sm font-medium">Profile Picture URL</Label>
-                    <div className="flex mt-2">
+                    <div className="flex gap-2">
                       <Input
                         id="avatar_url"
                         type="url"
@@ -158,18 +173,18 @@ export const Profile = () => {
                         onChange={(e) => handleInputChange('avatar_url', e.target.value)}
                         className="flex-1"
                       />
-                      <Button type="button" variant="outline" size="sm" className="ml-2 hover:bg-blue-50">
+                      <Button type="button" variant="outline" size="sm" className="hover:bg-blue-50 px-3">
                         <Camera className="h-4 w-4" />
                       </Button>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500">
                       Enter a URL to your profile picture
                     </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="full_name" className="text-sm font-medium">Full Name</Label>
                     <Input
                       id="full_name"
@@ -177,10 +192,9 @@ export const Profile = () => {
                       placeholder="Enter your full name"
                       value={formData.full_name}
                       onChange={(e) => handleInputChange('full_name', e.target.value)}
-                      className="mt-2"
                     />
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="username" className="text-sm font-medium">Username</Label>
                     <Input
                       id="username"
@@ -188,14 +202,13 @@ export const Profile = () => {
                       placeholder="Enter your username"
                       value={formData.username}
                       onChange={(e) => handleInputChange('username', e.target.value)}
-                      className="mt-2"
                     />
                   </div>
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
-                  <div className="flex items-center mt-2">
+                  <div className="flex items-center">
                     <Mail className="h-4 w-4 text-gray-400 mr-2" />
                     <Input
                       id="email"
@@ -205,14 +218,14 @@ export const Profile = () => {
                       className="flex-1 bg-gray-50"
                     />
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-gray-500">
                     Email cannot be changed. Contact support if needed.
                   </p>
                 </div>
 
                 <Button 
                   type="submit" 
-                  className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 transition-all duration-200" 
+                  className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105" 
                   disabled={saving}
                 >
                   <Save className="mr-2 h-4 w-4" />
@@ -223,7 +236,7 @@ export const Profile = () => {
           </Card>
 
           {/* Usage Statistics */}
-          <Card className="animate-in fade-in-50 slide-in-from-bottom-4 duration-500 delay-200">
+          <Card className="animate-in fade-in-50 slide-in-from-bottom-4 duration-500 delay-200 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5" />
@@ -236,9 +249,12 @@ export const Profile = () => {
             <CardContent>
               <div className="space-y-6">
                 {/* Audio Processing */}
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium">Audio Processing</span>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium flex items-center gap-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      Audio Processing
+                    </span>
                     <span className="text-sm text-gray-600">
                       {quota ? 60 - quota.audio_minutes : 0} / 60 minutes used
                     </span>
@@ -247,9 +263,12 @@ export const Profile = () => {
                 </div>
 
                 {/* Image Processing */}
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium">Image Processing</span>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium flex items-center gap-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      Image Processing
+                    </span>
                     <span className="text-sm text-gray-600">
                       {quota ? 100 - quota.image_count : 0} / 100 images used
                     </span>
@@ -258,9 +277,12 @@ export const Profile = () => {
                 </div>
 
                 {/* PDF Processing */}
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium">PDF Processing</span>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium flex items-center gap-2">
+                      <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                      PDF Processing
+                    </span>
                     <span className="text-sm text-gray-600">
                       {quota ? 50 - quota.pdf_pages : 0} / 50 pages used
                     </span>
@@ -272,7 +294,7 @@ export const Profile = () => {
           </Card>
 
           {/* Account Overview */}
-          <Card className="animate-in fade-in-50 slide-in-from-bottom-4 duration-500 delay-300">
+          <Card className="animate-in fade-in-50 slide-in-from-bottom-4 duration-500 delay-300 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
@@ -304,7 +326,7 @@ export const Profile = () => {
                 </div>
                 <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
                   <div className="flex items-center justify-center mb-3">
-                    <Sparkles className="h-6 w-6 text-purple-600 mr-2" />
+                    <CheckCircle className="h-6 w-6 text-purple-600 mr-2" />
                     <div className="text-lg font-bold text-purple-600">
                       Active
                     </div>
@@ -316,13 +338,16 @@ export const Profile = () => {
               <div className="p-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-white">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>
-                    <h3 className="font-semibold text-lg mb-2">Need more quota?</h3>
+                    <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
+                      <Sparkles className="h-5 w-5" />
+                      Need more quota?
+                    </h3>
                     <p className="text-blue-100">Upgrade to Pro for unlimited processing power</p>
                   </div>
                   <Button 
                     variant="secondary" 
                     onClick={() => navigate('/payments')}
-                    className="bg-white text-blue-600 hover:bg-blue-50 transition-all duration-200 transform hover:scale-105"
+                    className="bg-white text-blue-600 hover:bg-blue-50 transition-all duration-200 transform hover:scale-105 shadow-lg"
                   >
                     <Crown className="mr-2 h-4 w-4" />
                     Upgrade Plan
