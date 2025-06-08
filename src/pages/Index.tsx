@@ -27,9 +27,10 @@ const Index = () => {
     );
   }
 
-  // Show landing page for non-authenticated users without header
+  // Show landing page with header for non-authenticated users
   return (
     <div className="min-h-screen">
+      <Header />
       <main>
         <HeroSection />
         <Stats />

@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Sparkles, User, Settings, LogOut, CreditCard } from 'lucide-react';
+import { Menu, X, Sparkles, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import {
   DropdownMenu,
@@ -34,107 +34,92 @@ export const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+    <header className="w-full bg-white shadow-sm border-b sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div 
-            className="flex items-center space-x-3 cursor-pointer group" 
+            className="flex items-center space-x-2 cursor-pointer" 
             onClick={() => navigateTo('/')}
           >
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
-              <Sparkles className="h-6 w-6 text-white" />
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <Sparkles className="h-5 w-5 text-white" />
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              AccessifyAI
-            </span>
+            <span className="text-xl font-bold text-gray-900">AccessifyAI</span>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-2">
-            <Button 
-              variant="ghost"
+          <nav className="hidden md:flex items-center space-x-8">
+            <button 
               onClick={() => navigateTo('/')}
-              className="text-gray-800 hover:text-blue-600 hover:bg-blue-50 font-semibold text-base px-4 py-2 border border-transparent hover:border-blue-200 transition-all duration-200"
+              className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
             >
               Home
-            </Button>
-            <Button 
-              variant="ghost"
+            </button>
+            <button 
               onClick={() => scrollToSection('features')} 
-              className="text-gray-800 hover:text-blue-600 hover:bg-blue-50 font-semibold text-base px-4 py-2 border border-transparent hover:border-blue-200 transition-all duration-200"
+              className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
             >
               Features
-            </Button>
-            <Button 
-              variant="ghost"
+            </button>
+            <button 
               onClick={() => scrollToSection('pricing')} 
-              className="text-gray-800 hover:text-blue-600 hover:bg-blue-50 font-semibold text-base px-4 py-2 border border-transparent hover:border-blue-200 transition-all duration-200"
+              className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
             >
               Pricing
-            </Button>
-            <Button 
-              variant="ghost"
+            </button>
+            <button 
               onClick={() => scrollToSection('testimonials')} 
-              className="text-gray-800 hover:text-blue-600 hover:bg-blue-50 font-semibold text-base px-4 py-2 border border-transparent hover:border-blue-200 transition-all duration-200"
+              className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
             >
               Reviews
-            </Button>
-            <Button 
-              variant="ghost"
+            </button>
+            <button 
               onClick={() => scrollToSection('faq')} 
-              className="text-gray-800 hover:text-blue-600 hover:bg-blue-50 font-semibold text-base px-4 py-2 border border-transparent hover:border-blue-200 transition-all duration-200"
+              className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
             >
               FAQ
-            </Button>
+            </button>
           </nav>
 
           {/* Auth Section - Desktop */}
-          <div className="hidden md:flex items-center space-x-3">
+          <div className="hidden md:flex items-center space-x-4">
             {loading ? (
               <div className="flex space-x-2">
-                <div className="w-20 h-10 bg-gray-200 animate-pulse rounded-md"></div>
-                <div className="w-24 h-10 bg-gray-200 animate-pulse rounded-md"></div>
+                <div className="w-16 h-8 bg-gray-200 animate-pulse rounded"></div>
+                <div className="w-20 h-8 bg-gray-200 animate-pulse rounded"></div>
               </div>
             ) : user ? (
               <div className="flex items-center space-x-3">
                 <Button 
-                  variant="ghost"
+                  variant="outline"
                   onClick={() => navigateTo('/dashboard')}
-                  className="text-gray-800 hover:text-blue-600 hover:bg-blue-50 font-semibold border border-gray-300 hover:border-blue-300 px-4 py-2 transition-all duration-200"
+                  className="text-gray-700 border-gray-300 hover:bg-gray-50"
                 >
                   Dashboard
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-10 w-10 rounded-full border-2 border-gray-300 hover:border-blue-400 transition-all duration-200">
-                      <Avatar className="h-9 w-9">
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                      <Avatar className="h-8 w-8">
                         <AvatarImage src={profile?.avatar_url} alt={profile?.full_name || user.email} />
-                        <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold">
+                        <AvatarFallback className="bg-blue-600 text-white text-sm">
                           {profile?.full_name?.[0] || user.email?.[0]?.toUpperCase() || 'U'}
                         </AvatarFallback>
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56 mr-4 bg-white border border-gray-200 shadow-lg" align="end">
-                    <div className="flex flex-col space-y-1 p-3 border-b border-gray-100">
-                      <p className="text-sm font-semibold text-gray-900">{profile?.full_name || 'User'}</p>
-                      <p className="text-xs text-gray-600">{user.email}</p>
+                  <DropdownMenuContent className="w-56 bg-white border shadow-lg" align="end">
+                    <div className="flex flex-col space-y-1 p-2">
+                      <p className="text-sm font-medium text-gray-900">{profile?.full_name || 'User'}</p>
+                      <p className="text-xs text-gray-500">{user.email}</p>
                     </div>
-                    <DropdownMenuItem onClick={() => navigateTo('/profile')} className="cursor-pointer hover:bg-blue-50">
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigateTo('/profile')} className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
                       Profile
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigateTo('/payments')} className="cursor-pointer hover:bg-blue-50">
-                      <CreditCard className="mr-2 h-4 w-4" />
-                      Billing
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigateTo('/dashboard')} className="cursor-pointer hover:bg-blue-50">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Dashboard
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-600 hover:bg-red-50">
+                    <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-600">
                       <LogOut className="mr-2 h-4 w-4" />
                       Sign Out
                     </DropdownMenuItem>
@@ -142,147 +127,124 @@ export const Header = () => {
                 </DropdownMenu>
               </div>
             ) : (
-              <>
+              <div className="flex items-center space-x-3">
                 <Button 
                   variant="outline" 
                   onClick={() => navigateTo('/auth')}
-                  className="border-2 border-gray-800 text-gray-800 hover:bg-gray-800 hover:text-white font-semibold text-base px-6 py-2 transition-all duration-200"
+                  className="text-gray-700 border-gray-300 hover:bg-gray-50"
                 >
                   Sign In
                 </Button>
                 <Button 
                   onClick={() => navigateTo('/auth')}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold text-base px-6 py-2 border-2 border-transparent shadow-md hover:shadow-lg transition-all duration-200"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   Get Started
                 </Button>
-              </>
+              </div>
             )}
           </div>
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 border-2 border-gray-800 transition-all duration-200"
+            className="md:hidden p-2 rounded-md text-gray-700 hover:bg-gray-100"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Toggle menu"
           >
             {isMenuOpen ? (
-              <X className="h-6 w-6 text-gray-800" />
+              <X className="h-6 w-6" />
             ) : (
-              <Menu className="h-6 w-6 text-gray-800" />
+              <Menu className="h-6 w-6" />
             )}
           </button>
         </div>
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden bg-white border-t border-gray-200 shadow-lg">
-            <div className="p-4 space-y-3">
-              {/* Navigation Links */}
-              <div className="space-y-2">
-                <Button 
-                  variant="ghost"
-                  onClick={() => navigateTo('/')}
-                  className="w-full justify-start text-gray-800 hover:text-blue-600 hover:bg-blue-50 font-semibold text-base py-3 border border-transparent hover:border-blue-200"
-                >
-                  Home
-                </Button>
-                <Button 
-                  variant="ghost"
-                  onClick={() => scrollToSection('features')} 
-                  className="w-full justify-start text-gray-800 hover:text-blue-600 hover:bg-blue-50 font-semibold text-base py-3 border border-transparent hover:border-blue-200"
-                >
-                  Features
-                </Button>
-                <Button 
-                  variant="ghost"
-                  onClick={() => scrollToSection('pricing')} 
-                  className="w-full justify-start text-gray-800 hover:text-blue-600 hover:bg-blue-50 font-semibold text-base py-3 border border-transparent hover:border-blue-200"
-                >
-                  Pricing
-                </Button>
-                <Button 
-                  variant="ghost"
-                  onClick={() => scrollToSection('testimonials')} 
-                  className="w-full justify-start text-gray-800 hover:text-blue-600 hover:bg-blue-50 font-semibold text-base py-3 border border-transparent hover:border-blue-200"
-                >
-                  Reviews
-                </Button>
-                <Button 
-                  variant="ghost"
-                  onClick={() => scrollToSection('faq')} 
-                  className="w-full justify-start text-gray-800 hover:text-blue-600 hover:bg-blue-50 font-semibold text-base py-3 border border-transparent hover:border-blue-200"
-                >
-                  FAQ
-                </Button>
-              </div>
+          <div className="md:hidden border-t bg-white">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              <button 
+                onClick={() => navigateTo('/')}
+                className="block w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+              >
+                Home
+              </button>
+              <button 
+                onClick={() => scrollToSection('features')} 
+                className="block w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+              >
+                Features
+              </button>
+              <button 
+                onClick={() => scrollToSection('pricing')} 
+                className="block w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+              >
+                Pricing
+              </button>
+              <button 
+                onClick={() => scrollToSection('testimonials')} 
+                className="block w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+              >
+                Reviews
+              </button>
+              <button 
+                onClick={() => scrollToSection('faq')} 
+                className="block w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+              >
+                FAQ
+              </button>
               
-              {/* Auth Section - Mobile */}
-              <div className="pt-4 border-t border-gray-200">
+              {/* Mobile Auth Section */}
+              <div className="pt-4 border-t">
                 {loading ? (
                   <div className="space-y-2">
-                    <div className="w-full h-12 bg-gray-200 animate-pulse rounded-lg"></div>
-                    <div className="w-full h-12 bg-gray-200 animate-pulse rounded-lg"></div>
+                    <div className="w-full h-10 bg-gray-200 animate-pulse rounded"></div>
+                    <div className="w-full h-10 bg-gray-200 animate-pulse rounded"></div>
                   </div>
                 ) : user ? (
                   <div className="space-y-2">
-                    <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <Avatar className="h-10 w-10">
+                    <div className="flex items-center space-x-3 px-3 py-2 bg-gray-50 rounded-md">
+                      <Avatar className="h-8 w-8">
                         <AvatarImage src={profile?.avatar_url} alt={profile?.full_name || user.email} />
-                        <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold">
+                        <AvatarFallback className="bg-blue-600 text-white text-sm">
                           {profile?.full_name?.[0] || user.email?.[0]?.toUpperCase() || 'U'}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-semibold text-gray-900">{profile?.full_name || 'User'}</p>
-                        <p className="text-sm text-gray-600">{user.email}</p>
+                        <p className="text-sm font-medium text-gray-900">{profile?.full_name || 'User'}</p>
+                        <p className="text-xs text-gray-500">{user.email}</p>
                       </div>
                     </div>
-                    <Button 
-                      variant="ghost" 
+                    <button 
                       onClick={() => navigateTo('/dashboard')}
-                      className="w-full justify-start text-gray-800 hover:bg-blue-50 hover:text-blue-600 text-base py-3 border border-gray-300 hover:border-blue-300"
+                      className="block w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
                     >
-                      <Settings className="mr-2 h-4 w-4" />
                       Dashboard
-                    </Button>
-                    <Button 
-                      variant="ghost" 
+                    </button>
+                    <button 
                       onClick={() => navigateTo('/profile')}
-                      className="w-full justify-start text-gray-800 hover:bg-blue-50 hover:text-blue-600 text-base py-3 border border-gray-300 hover:border-blue-300"
+                      className="block w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
                     >
-                      <User className="mr-2 h-4 w-4" />
                       Profile
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      onClick={() => navigateTo('/payments')}
-                      className="w-full justify-start text-gray-800 hover:bg-blue-50 hover:text-blue-600 text-base py-3 border border-gray-300 hover:border-blue-300"
-                    >
-                      <CreditCard className="mr-2 h-4 w-4" />
-                      Billing
-                    </Button>
-                    <Button 
-                      variant="outline" 
+                    </button>
+                    <button 
                       onClick={handleSignOut}
-                      className="w-full justify-start text-red-600 hover:bg-red-50 hover:border-red-300 border-red-200 text-base py-3"
+                      className="block w-full text-left px-3 py-2 text-red-600 hover:bg-red-50 rounded-md"
                     >
-                      <LogOut className="mr-2 h-4 w-4" />
                       Sign Out
-                    </Button>
+                    </button>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <Button 
                       variant="outline" 
                       onClick={() => navigateTo('/auth')}
-                      className="w-full border-2 border-gray-800 text-gray-800 hover:bg-gray-800 hover:text-white font-semibold text-base py-3"
+                      className="w-full text-gray-700 border-gray-300 hover:bg-gray-50"
                     >
                       Sign In
                     </Button>
                     <Button 
                       onClick={() => navigateTo('/auth')}
-                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold text-base py-3 shadow-md"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                     >
                       Get Started
                     </Button>
