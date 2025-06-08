@@ -1,5 +1,4 @@
 
-import { Header } from '@/components/Header';
 import { HeroSection } from '@/components/HeroSection';
 import { FeaturesShowcase } from '@/components/FeaturesShowcase';
 import { PricingPlans } from '@/components/PricingPlans';
@@ -10,6 +9,7 @@ import { CTA } from '@/components/CTA';
 import { Footer } from '@/components/Footer';
 import { useAuth } from '@/hooks/use-auth';
 import { Dashboard } from '@/components/Dashboard';
+import { Header } from '@/components/Header';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -27,10 +27,9 @@ const Index = () => {
     );
   }
 
-  // Show landing page for non-authenticated users
+  // Show landing page for non-authenticated users without header
   return (
     <div className="min-h-screen">
-      <Header />
       <main>
         <HeroSection />
         <Stats />
